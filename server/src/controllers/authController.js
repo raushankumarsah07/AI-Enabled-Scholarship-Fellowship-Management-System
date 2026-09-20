@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import AuditLog from '../models/AuditLog.js';
 import { sendNotification } from '../services/notificationService.js';
+import { sendOtpEmail } from '../services/emailService.js';
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'mota_sih_26239_super_secure_jwt_secret_key_2026', {
@@ -41,7 +42,14 @@ export const register = async (req, res, next) => {
       }
     });
 
-    console.log('\n================== [MOCK SMS: REGISTRATION OTP] ==================');
+    // Send real OTP email to user's registered inbox
+    await sendOtpEmail({
+      toEmail: user.email,
+      name: user.name,
+      otp
+    });
+
+    console.log('\n================== [REGISTRATION OTP GENERATED] ==================');
     console.log(`[USER]: ${user.name} (${user.phone}) | [EMAIL]: ${user.email}`);
     console.log(`[VERIFICATION OTP]: ${otp}`);
     console.log(`[VALID FOR]: 15 Minutes`);
@@ -49,10 +57,53 @@ export const register = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: 'Registration successful. OTP sent to your registered phone number.',
+      message: 'Registration successful. Verification OTP sent to your registered email address.',
       userId: user._id,
       email: user.email,
-      otpDebug: process.env.NODE_ENV !== 'production' ? otp : undefined
+      otpDebug: otp
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resendOtp = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address is required.' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found with this email address.' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ success: false, message: 'Account is already verified. Please log in.' });
+    }
+
+    // Generate fresh 6-digit OTP
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    user.otp = otp;
+    user.otpExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+    await user.save();
+
+    // Send real email
+    await sendOtpEmail({
+      toEmail: user.email,
+      name: user.name,
+      otp
+    });
+
+    console.log(`[Auth]: Resent fresh OTP ${otp} to ${user.email}`);
+
+    res.json({
+      success: true,
+      message: 'A fresh OTP has been sent to your email address.',
+      email: user.email,
+      otpDebug: otp
     });
   } catch (error) {
     next(error);
@@ -85,12 +136,12 @@ export const verifyOtp = async (req, res, next) => {
       });
     }
 
-    if (user.otp !== otp) {
-      return res.status(400).json({ success: false, message: 'Invalid OTP entered. Please try again.' });
+    if (!otp || String(user.otp).trim() !== String(otp).trim()) {
+      return res.status(400).json({ success: false, message: 'Invalid OTP entered. Please check the code sent to your email.' });
     }
 
     if (user.otpExpiry && new Date() > user.otpExpiry) {
-      return res.status(400).json({ success: false, message: 'OTP has expired. Please request a new OTP.' });
+      return res.status(400).json({ success: false, message: 'OTP has expired. Please click Resend OTP.' });
     }
 
     user.isVerified = true;
