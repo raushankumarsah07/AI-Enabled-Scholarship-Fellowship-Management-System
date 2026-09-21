@@ -28,11 +28,27 @@ export const createApplication = async (req, res, next) => {
     });
 
     if (existing) {
+      if (existing.status === 'DRAFT') {
+        // Automatically resume and update the existing draft
+        existing.formData = {
+          ...existing.formData,
+          ...formData
+        };
+        await existing.save();
+        return res.json({
+          success: true,
+          message: 'Existing draft resumed.',
+          application: existing,
+          resumed: true
+        });
+      }
+
       return res.status(400).json({
         success: false,
-        message: 'You already have an active application for this scheme.',
+        message: `You already have an active submitted application (${existing.applicationNo} - Status: ${existing.status.replace(/_/g, ' ')}) for this scheme.`,
         applicationId: existing._id,
-        applicationNo: existing.applicationNo
+        applicationNo: existing.applicationNo,
+        status: existing.status
       });
     }
 

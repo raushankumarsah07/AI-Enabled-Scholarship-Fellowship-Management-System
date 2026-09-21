@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Badge, Button, Table, Spinner, Alert, Modal, Form } from 'react-bootstrap';
+import { Container, Row, Col, Card, Badge, Button, Table, Spinner, Alert, Modal, Form, InputGroup } from 'react-bootstrap';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import Sidebar from '../../components/Sidebar';
 import StatusBadge from '../../components/StatusBadge';
 import OcrResultCard from '../../components/OcrResultCard';
-import { ShieldCheck, ArrowLeft, CheckCircle2, XCircle, AlertTriangle, FileText, Cpu, History } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, CheckCircle2, XCircle, AlertTriangle, FileText, Cpu, History, ArrowUpDown, Filter, Search } from 'lucide-react';
 
 const ReviewApplication = () => {
   const { id } = useParams();
@@ -16,6 +16,11 @@ const ReviewApplication = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+
+  // Sorting and Filtering State
+  const [filterStatus, setFilterStatus] = useState('ALL');
+  const [sortBy, setSortBy] = useState('DEFAULT');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Deficiency Modal State
   const [showDeficiencyModal, setShowDeficiencyModal] = useState(false);
@@ -103,6 +108,36 @@ const ReviewApplication = () => {
   const applicant = application?.applicantId;
   const scheme = application?.schemeId;
 
+  // Process Filtered & Sorted Documents
+  let processedDocs = [...documents];
+
+  if (searchTerm.trim()) {
+    const q = searchTerm.toLowerCase();
+    processedDocs = processedDocs.filter(d =>
+      d.docKey.toLowerCase().includes(q) ||
+      d.originalName.toLowerCase().includes(q) ||
+      (d.detectedDocType && d.detectedDocType.toLowerCase().includes(q))
+    );
+  }
+
+  if (filterStatus === 'FLAGGED') {
+    processedDocs = processedDocs.filter(d => (d.mismatches && d.mismatches.length > 0) || d.verificationStatus === 'needs_review');
+  } else if (filterStatus === 'APPROVED') {
+    processedDocs = processedDocs.filter(d => d.verificationStatus === 'approved' || d.verificationStatus === 'auto_ok');
+  } else if (filterStatus === 'REJECTED') {
+    processedDocs = processedDocs.filter(d => d.verificationStatus === 'rejected');
+  }
+
+  if (sortBy === 'CONF_ASC') {
+    processedDocs.sort((a, b) => (a.confidence || 0) - (b.confidence || 0));
+  } else if (sortBy === 'CONF_DESC') {
+    processedDocs.sort((a, b) => (b.confidence || 0) - (a.confidence || 0));
+  } else if (sortBy === 'NAME_ASC') {
+    processedDocs.sort((a, b) => a.originalName.localeCompare(b.originalName));
+  } else if (sortBy === 'TYPE_ASC') {
+    processedDocs.sort((a, b) => (a.detectedDocType || '').localeCompare(b.detectedDocType || ''));
+  }
+
   return (
     <Container fluid className="py-4 px-lg-4">
       <Row className="gy-4">
@@ -158,62 +193,122 @@ const ReviewApplication = () => {
             </div>
           </Card>
 
-          {/* Scrutiny Document Cards */}
+          {/* Scrutiny Document Panel with Sort & Filter Controls */}
           <div className="mb-4">
-            <h5 className="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-              <ShieldCheck size={20} className="text-primary" />
-              <span>Document Verification & Scrutiny Panel ({documents.length} Files)</span>
-            </h5>
+            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <h5 className="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <ShieldCheck size={20} className="text-primary" />
+                <span>Document Verification &amp; Scrutiny Panel ({documents.length} Total Files)</span>
+              </h5>
+            </div>
 
-            {documents.map((doc) => (
-              <Card key={doc._id} className="gov-card mb-4 border shadow-sm">
-                <Card.Body className="p-3">
-                  <OcrResultCard document={doc} />
+            {/* Filter and Sort Toolbar */}
+            <Card className="p-3 mb-3 bg-light border shadow-sm">
+              <Row className="g-2 align-items-center">
+                <Col md={4} sm={12}>
+                  <InputGroup size="sm">
+                    <InputGroup.Text className="bg-white"><Search size={14} className="text-muted" /></InputGroup.Text>
+                    <Form.Control
+                      type="text"
+                      placeholder="Filter by certificate name or type..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </InputGroup>
+                </Col>
 
-                  {/* Verifier Action Toolbar */}
-                  <div className="p-3 bg-light rounded border d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2">
-                    <div className="small">
-                      Verification Status: <strong className="text-uppercase">{doc.verificationStatus}</strong>
-                    </div>
-
-                    <div className="d-flex gap-2">
-                      <Button
-                        variant="success"
-                        size="sm"
-                        className="fw-semibold d-inline-flex align-items-center gap-1"
-                        onClick={() => handleDocDecision(doc._id, 'approved')}
-                        disabled={actionLoading}
-                      >
-                        <CheckCircle2 size={15} /> Approve Document
-                      </Button>
-
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        className="fw-semibold d-inline-flex align-items-center gap-1"
-                        onClick={() => handleDocDecision(doc._id, 'rejected')}
-                        disabled={actionLoading}
-                      >
-                        <XCircle size={15} /> Reject
-                      </Button>
-
-                      <Button
-                        variant="warning"
-                        size="sm"
-                        className="fw-bold text-dark d-inline-flex align-items-center gap-1"
-                        onClick={() => {
-                          setSelectedDocKey(doc.docKey);
-                          setShowDeficiencyModal(true);
-                        }}
-                        disabled={actionLoading}
-                      >
-                        <AlertTriangle size={15} /> Raise Deficiency
-                      </Button>
-                    </div>
+                <Col md={4} sm={6}>
+                  <div className="d-flex align-items-center gap-1.5">
+                    <Filter size={14} className="text-muted flex-shrink-0" />
+                    <Form.Select
+                      size="sm"
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      className="bg-white"
+                    >
+                      <option value="ALL">All Documents ({documents.length})</option>
+                      <option value="FLAGGED">Flagged / Needs Review</option>
+                      <option value="APPROVED">Approved / Auto-Verified</option>
+                      <option value="REJECTED">Rejected</option>
+                    </Form.Select>
                   </div>
-                </Card.Body>
-              </Card>
-            ))}
+                </Col>
+
+                <Col md={4} sm={6}>
+                  <div className="d-flex align-items-center gap-1.5">
+                    <ArrowUpDown size={14} className="text-muted flex-shrink-0" />
+                    <Form.Select
+                      size="sm"
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="bg-white"
+                    >
+                      <option value="DEFAULT">Sort: Default Order</option>
+                      <option value="CONF_ASC">Confidence: Low to High (Risky First)</option>
+                      <option value="CONF_DESC">Confidence: High to Low</option>
+                      <option value="NAME_ASC">Document Name: A → Z</option>
+                      <option value="TYPE_ASC">Detected Type: A → Z</option>
+                    </Form.Select>
+                  </div>
+                </Col>
+              </Row>
+            </Card>
+
+            {processedDocs.length === 0 ? (
+              <div className="text-center py-4 bg-light rounded border text-muted small">
+                No documents match the active filter criteria.
+              </div>
+            ) : (
+              processedDocs.map((doc) => (
+                <Card key={doc._id} className="gov-card mb-4 border shadow-sm">
+                  <Card.Body className="p-3">
+                    <OcrResultCard document={doc} />
+
+                    {/* Verifier Action Toolbar */}
+                    <div className="p-3 bg-light rounded border d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2">
+                      <div className="small">
+                        Verification Status: <strong className="text-uppercase">{doc.verificationStatus}</strong>
+                      </div>
+
+                      <div className="d-flex gap-2">
+                        <Button
+                          variant="success"
+                          size="sm"
+                          className="fw-semibold d-inline-flex align-items-center gap-1"
+                          onClick={() => handleDocDecision(doc._id, 'approved')}
+                          disabled={actionLoading}
+                        >
+                          <CheckCircle2 size={15} /> Approve Document
+                        </Button>
+
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          className="fw-semibold d-inline-flex align-items-center gap-1"
+                          onClick={() => handleDocDecision(doc._id, 'rejected')}
+                          disabled={actionLoading}
+                        >
+                          <XCircle size={15} /> Reject
+                        </Button>
+
+                        <Button
+                          variant="warning"
+                          size="sm"
+                          className="fw-bold text-dark d-inline-flex align-items-center gap-1"
+                          onClick={() => {
+                            setSelectedDocKey(doc.docKey);
+                            setShowDeficiencyModal(true);
+                          }}
+                          disabled={actionLoading}
+                        >
+                          <AlertTriangle size={15} /> Raise Deficiency
+                        </Button>
+                      </div>
+                    </div>
+                  </Card.Body>
+                </Card>
+              ))
+            )}
           </div>
 
           {/* Raise Deficiency Modal */}

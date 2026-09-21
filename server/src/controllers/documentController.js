@@ -187,3 +187,53 @@ export const reuploadDocument = async (req, res, next) => {
     next(error);
   }
 };
+
+export const serveDocumentFile = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const doc = await Document.findById(id);
+
+    if (!doc) {
+      return res.status(404).json({ success: false, message: 'Document not found.' });
+    }
+
+    let filePath = doc.storedPath;
+
+    if (!filePath || !fs.existsSync(filePath)) {
+      const baseName = path.basename(filePath || '');
+      const uploadsPath = path.resolve(process.cwd(), 'uploads', baseName);
+      const samplesPath = path.resolve(process.cwd(), 'uploads/samples', baseName);
+      const serverUploadsPath = path.resolve(process.cwd(), 'server/uploads', baseName);
+      const serverSamplesPath = path.resolve(process.cwd(), 'server/uploads/samples', baseName);
+
+      if (fs.existsSync(uploadsPath)) {
+        filePath = uploadsPath;
+      } else if (fs.existsSync(samplesPath)) {
+        filePath = samplesPath;
+      } else if (fs.existsSync(serverUploadsPath)) {
+        filePath = serverUploadsPath;
+      } else if (fs.existsSync(serverSamplesPath)) {
+        filePath = serverSamplesPath;
+      } else {
+        // If file content was generated dynamically (e.g. sample mock certificates in seed)
+        // Serve a dynamically generated certificate preview text/html
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        return res.send(`GOVERNMENT CERTIFICATE PREVIEW\n\nDocument: ${doc.originalName}\nType: ${doc.docKey}\nOCR Status: ${doc.ocrStatus}\nDetected: ${doc.detectedDocType}\n\n${doc.ocrRawText || 'Official Government Certificate File'}`);
+      }
+    }
+
+    const ext = path.extname(filePath).toLowerCase();
+    let mime = doc.mimeType || 'application/pdf';
+    if (ext === '.png') mime = 'image/png';
+    else if (ext === '.jpg' || ext === '.jpeg') mime = 'image/jpeg';
+    else if (ext === '.pdf') mime = 'application/pdf';
+    else if (ext === '.txt') mime = 'text/plain';
+
+    res.setHeader('Content-Type', mime);
+    res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(doc.originalName || 'document')}"`);
+    return res.sendFile(path.resolve(filePath));
+  } catch (error) {
+    next(error);
+  }
+};
+
