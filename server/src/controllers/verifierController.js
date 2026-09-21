@@ -39,7 +39,16 @@ export const getVerifierQueue = async (req, res, next) => {
 
     // Filter by State if requested
     if (state) {
-      applications = applications.filter(a => a.applicantId?.profile?.state?.toLowerCase() === state.toLowerCase());
+      applications = applications.filter(a => {
+        const appState =
+          a.applicantId?.profile?.state ||
+          a.applicantId?.state ||
+          a.formData?.state ||
+          a.formData?.personalDetails?.state ||
+          a.formData?.domicileState ||
+          '';
+        return appState.toLowerCase().trim() === state.toLowerCase().trim();
+      });
     }
 
     // Search query filter (appNo or applicant name)

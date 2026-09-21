@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { INDIAN_STATES, UNION_TERRITORIES } from '../../constants/indianStates';
 import { UserPlus, ShieldCheck } from 'lucide-react';
 
 const Register = () => {
@@ -191,14 +192,28 @@ const Register = () => {
                 <Col md={6}>
                   <Form.Group>
                     <Form.Label className="small fw-bold">Domicile State</Form.Label>
-                    <Form.Control
-                      type="text"
+                    <Form.Select
                       name="state"
-                      placeholder="e.g. Jharkhand / Odisha / MP"
                       value={formData.state}
                       onChange={handleChange}
                       required
-                    />
+                    >
+                      <option value="">-- Select Domicile State / UT --</option>
+                      <optgroup label="28 Indian States (A–Z)">
+                        {INDIAN_STATES.map((st) => (
+                          <option key={st} value={st}>
+                            {st}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="8 Union Territories">
+                        {UNION_TERRITORIES.map((ut) => (
+                          <option key={ut} value={ut}>
+                            {ut}
+                          </option>
+                        ))}
+                      </optgroup>
+                    </Form.Select>
                   </Form.Group>
                 </Col>
 

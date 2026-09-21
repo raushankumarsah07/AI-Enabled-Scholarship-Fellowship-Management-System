@@ -5,6 +5,7 @@ import axiosClient from '../../api/axiosClient';
 import Sidebar from '../../components/Sidebar';
 import DataTable from '../../components/DataTable';
 import StatusBadge from '../../components/StatusBadge';
+import { INDIAN_STATES, UNION_TERRITORIES, ALL_INDIAN_STATES_AND_UTS } from '../../constants/indianStates';
 import { ShieldCheck, AlertTriangle, Eye, Filter, CheckCircle2 } from 'lucide-react';
 
 const VerifierQueue = () => {
@@ -47,6 +48,17 @@ const VerifierQueue = () => {
     fetchQueue();
   }, [selectedScheme, selectedStatus, flaggedOnly, stateFilter]);
 
+  const getApplicantState = (row) => {
+    return (
+      row.applicantId?.profile?.state ||
+      row.applicantId?.state ||
+      row.formData?.state ||
+      row.formData?.personalDetails?.state ||
+      row.formData?.domicileState ||
+      'N/A'
+    );
+  };
+
   const columns = [
     {
       label: 'Application No',
@@ -77,8 +89,11 @@ const VerifierQueue = () => {
     },
     {
       label: 'State',
-      accessor: (row) => row.applicantId?.profile?.state || 'Jharkhand',
-      render: (row) => row.applicantId?.profile?.state || 'Jharkhand'
+      accessor: (row) => getApplicantState(row),
+      render: (row) => {
+        const st = getApplicantState(row);
+        return <span className="fw-semibold text-dark">{st}</span>;
+      }
     },
     {
       label: 'Doc Status',
@@ -129,7 +144,7 @@ const VerifierQueue = () => {
           </div>
 
           {/* Filter Toolbar */}
-          <Card className="gov-card p-3 mb-4 border bg-white">
+          <Card className="gov-card p-3 mb-4 border bg-white shadow-sm">
             <Row className="gy-2 align-items-center">
               <Col md={3}>
                 <Form.Label className="small fw-bold mb-1">Filter Scheme</Form.Label>
@@ -153,13 +168,21 @@ const VerifierQueue = () => {
               <Col md={3}>
                 <Form.Label className="small fw-bold mb-1">Applicant State</Form.Label>
                 <Form.Select size="sm" value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}>
-                  <option value="">All Indian States</option>
-                  <option value="Jharkhand">Jharkhand</option>
-                  <option value="Odisha">Odisha</option>
-                  <option value="Chhattisgarh">Chhattisgarh</option>
-                  <option value="Madhya Pradesh">Madhya Pradesh</option>
-                  <option value="Assam">Assam</option>
-                  <option value="Meghalaya">Meghalaya</option>
+                  <option value="">All Indian States & UTs (36)</option>
+                  <optgroup label="28 Indian States (A–Z)">
+                    {INDIAN_STATES.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="8 Union Territories">
+                    {UNION_TERRITORIES.map((ut) => (
+                      <option key={ut} value={ut}>
+                        {ut}
+                      </option>
+                    ))}
+                  </optgroup>
                 </Form.Select>
               </Col>
 
