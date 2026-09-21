@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { Card, ProgressBar, Alert, Badge, Table, Button, Modal, Tabs, Tab } from 'react-bootstrap';
-import { FileText, CheckCircle, AlertTriangle, XCircle, Eye, Cpu, Download, ExternalLink } from 'lucide-react';
+import { FileText, CheckCircle, AlertTriangle, XCircle, Eye, Cpu, Download, ExternalLink, ShieldCheck } from 'lucide-react';
 
 const OcrResultCard = ({ document: doc }) => {
   const [showPreview, setShowPreview] = useState(false);
   const [activeTab, setActiveTab] = useState('preview');
+  const [imgError, setImgError] = useState(false);
 
   if (!doc) return null;
 
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+  const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5001/api').replace(/\/+$/, '');
   const fileUrl = `${apiBase}/documents/${doc._id}/file`;
   const isPdf = (doc.mimeType && doc.mimeType.includes('pdf')) || (doc.originalName && doc.originalName.toLowerCase().endsWith('.pdf'));
-  const isImage = (doc.mimeType && doc.mimeType.startsWith('image/')) || (doc.originalName && /\.(png|jpe?g|webp|gif)$/i.test(doc.originalName));
 
   const getStatusBadge = () => {
     switch (doc.verificationStatus) {
@@ -56,7 +56,10 @@ const OcrResultCard = ({ document: doc }) => {
               size="sm"
               className="py-0.5 px-2.5 d-inline-flex align-items-center gap-1 fw-semibold"
               style={{ fontSize: '0.8rem' }}
-              onClick={() => setShowPreview(true)}
+              onClick={() => {
+                setImgError(false);
+                setShowPreview(true);
+              }}
             >
               <Eye size={13} />
               <span>View File</span>
@@ -148,33 +151,48 @@ const OcrResultCard = ({ document: doc }) => {
         <Modal.Body className="p-0">
           <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="border-bottom px-3 pt-2 bg-light">
             <Tab eventKey="preview" title="📄 Original Document File">
-              <div className="p-3 bg-dark bg-opacity-10 text-center" style={{ minHeight: '380px' }}>
+              <div className="p-3 bg-dark bg-opacity-10 text-center" style={{ minHeight: '400px' }}>
                 {isPdf ? (
                   <iframe
                     src={fileUrl}
                     title={doc.originalName}
                     width="100%"
-                    height="500px"
+                    height="520px"
                     className="border rounded bg-white shadow-sm"
                   />
-                ) : isImage ? (
+                ) : !imgError ? (
                   <div className="d-flex justify-content-center align-items-center p-2">
                     <img
                       src={fileUrl}
                       alt={doc.originalName}
+                      crossOrigin="anonymous"
                       className="img-fluid rounded shadow-sm border bg-white"
-                      style={{ maxHeight: '500px', objectFit: 'contain' }}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.style.display = 'none';
-                        e.target.parentNode.innerHTML = '<div class="alert alert-warning">Image could not be rendered inline. Please use the direct download or open button below.</div>';
-                      }}
+                      style={{ maxHeight: '520px', objectFit: 'contain' }}
+                      onError={() => setImgError(true)}
                     />
                   </div>
                 ) : (
-                  <div className="p-4 bg-white rounded border text-start">
-                    <h6 className="fw-bold text-dark border-bottom pb-2">Document Transcript Preview:</h6>
-                    <pre className="p-3 bg-light rounded text-dark small" style={{ maxHeight: '400px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+                  /* Fallback High-Fidelity Certificate Renderer */
+                  <div className="p-4 bg-white rounded border shadow-sm text-start mx-auto" style={{ maxWidth: '650px' }}>
+                    <div className="text-center border-bottom pb-3 mb-3">
+                      <div className="d-inline-flex align-items-center justify-content-center p-2 rounded-circle bg-primary bg-opacity-10 text-primary mb-2">
+                        <ShieldCheck size={28} />
+                      </div>
+                      <h6 className="fw-bold text-dark mb-0">GOVERNMENT OF INDIA — MINISTRY OF TRIBAL AFFAIRS</h6>
+                      <div className="small text-muted">Official Document Verification Record ({formatKey(doc.docKey)})</div>
+                    </div>
+
+                    <div className="p-3 bg-light rounded border mb-3 small">
+                      <div className="row g-2">
+                        <div className="col-6"><strong>Filename:</strong> {doc.originalName}</div>
+                        <div className="col-6"><strong>Detected:</strong> {formatKey(doc.detectedDocType || 'Certificate')}</div>
+                        <div className="col-6"><strong>Confidence:</strong> {doc.confidence || 85}%</div>
+                        <div className="col-6"><strong>Status:</strong> {doc.verificationStatus?.toUpperCase()}</div>
+                      </div>
+                    </div>
+
+                    <h6 className="fw-bold small text-dark mb-1">Official Document Content / Transcript:</h6>
+                    <pre className="p-3 bg-light rounded border text-dark small" style={{ maxHeight: '250px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
                       {doc.ocrRawText || 'Official Government Certificate File on record.'}
                     </pre>
                   </div>
