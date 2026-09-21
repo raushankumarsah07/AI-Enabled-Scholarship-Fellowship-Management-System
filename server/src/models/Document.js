@@ -34,6 +34,10 @@ const documentSchema = new mongoose.Schema({
     type: String,
     default: 'application/pdf'
   },
+  fileData: {
+    type: String,
+    default: ''
+  },
   ocrStatus: {
     type: String,
     enum: ['pending', 'done', 'failed'],

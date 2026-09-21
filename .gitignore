@@ -19,6 +19,9 @@ build/
 # Uploaded Application Assets
 server/uploads/*
 !server/uploads/.gitkeep
+!server/uploads/samples/
+!server/uploads/samples/**
+!server/src/assets/**
 
 # Logs and Debugging
 npm-debug.log*

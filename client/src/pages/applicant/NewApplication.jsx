@@ -78,33 +78,39 @@ const NewApplication = () => {
         }
 
         // Check if user already has an application/draft for this scheme
-        const myAppsRes = await axiosClient.get('/applications/my');
-        if (myAppsRes.data.success) {
-          const myApps = myAppsRes.data.applications || [];
-          const found = myApps.find(a => (a.schemeId?._id || a.schemeId) === selectedSchemeId && !['REJECTED', 'COMPLETED'].includes(a.status));
+        try {
+          const myAppsRes = await axiosClient.get('/applications/mine');
+          if (myAppsRes.data.success) {
+            const myApps = myAppsRes.data.applications || [];
+            const found = myApps.find(a => (a.schemeId?._id || a.schemeId) === selectedSchemeId && !['REJECTED', 'COMPLETED'].includes(a.status));
 
-          if (found) {
-            if (found.status === 'DRAFT') {
-              setApplication(found);
-              if (found.formData && Object.keys(found.formData).length > 0) {
-                setFormData(prev => ({ ...prev, ...found.formData }));
+            if (found) {
+              if (found.status === 'DRAFT') {
+                setApplication(found);
+                if (found.formData && Object.keys(found.formData).length > 0) {
+                  setFormData(prev => ({ ...prev, ...found.formData }));
+                }
+                // Fetch draft documents
+                try {
+                  const appDetailRes = await axiosClient.get(`/applications/${found._id}`);
+                  if (appDetailRes.data.success) {
+                    setUploadedDocs(appDetailRes.data.documents || []);
+                  }
+                } catch {}
+                setSuccessMsg(`Resumed your saved draft application (${found.applicationNo}). You can continue filling details or jump directly to Document OCR.`);
+              } else {
+                setExistingActiveApp(found);
               }
-              // Fetch draft documents
-              const appDetailRes = await axiosClient.get(`/applications/${found._id}`);
-              if (appDetailRes.data.success) {
-                setUploadedDocs(appDetailRes.data.documents || []);
-              }
-              setSuccessMsg(`Resumed your saved draft application (${found.applicationNo}). You can continue filling details or jump directly to Document OCR.`);
             } else {
-              setExistingActiveApp(found);
+              setApplication(null);
+              setUploadedDocs([]);
             }
-          } else {
-            setApplication(null);
-            setUploadedDocs([]);
           }
+        } catch (appErr) {
+          console.warn('[NewApplication]: Could not fetch existing applications list:', appErr);
         }
       } catch (e) {
-        setError('Failed to load scheme details or user applications.');
+        setError('Failed to load scheme details.');
       } finally {
         setLoading(false);
       }

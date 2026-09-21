@@ -25,6 +25,18 @@ export const uploadDocument = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Application not found.' });
     }
 
+    // Read file buffer/base64 to store persistently in MongoDB Atlas
+    let fileData = '';
+    try {
+      if (req.file.path && fs.existsSync(req.file.path)) {
+        fileData = fs.readFileSync(req.file.path).toString('base64');
+      } else if (req.file.buffer) {
+        fileData = req.file.buffer.toString('base64');
+      }
+    } catch (err) {
+      console.warn('Could not read uploaded file to base64:', err.message);
+    }
+
     // Replace if document with this docKey already exists for this application
     const existingDoc = await Document.findOne({ applicationId: appId, docKey });
     let doc;
@@ -37,6 +49,7 @@ export const uploadDocument = async (req, res, next) => {
       existingDoc.originalName = req.file.originalname;
       existingDoc.storedPath = req.file.path;
       existingDoc.mimeType = req.file.mimetype;
+      if (fileData) existingDoc.fileData = fileData;
       existingDoc.ocrStatus = 'pending';
       existingDoc.confidence = 0;
       existingDoc.mismatches = [];
@@ -50,6 +63,7 @@ export const uploadDocument = async (req, res, next) => {
         originalName: req.file.originalname,
         storedPath: req.file.path,
         mimeType: req.file.mimetype,
+        fileData: fileData || '',
         ocrStatus: 'pending',
         verificationStatus: 'needs_review'
       });
@@ -143,9 +157,22 @@ export const reuploadDocument = async (req, res, next) => {
       try { fs.unlinkSync(doc.storedPath); } catch {}
     }
 
+    // Read file buffer/base64 to store persistently in MongoDB Atlas
+    let fileData = '';
+    try {
+      if (req.file.path && fs.existsSync(req.file.path)) {
+        fileData = fs.readFileSync(req.file.path).toString('base64');
+      } else if (req.file.buffer) {
+        fileData = req.file.buffer.toString('base64');
+      }
+    } catch (err) {
+      console.warn('Could not read reuploaded file to base64:', err.message);
+    }
+
     doc.originalName = req.file.originalname;
     doc.storedPath = req.file.path;
     doc.mimeType = req.file.mimetype;
+    if (fileData) doc.fileData = fileData;
     doc.ocrStatus = 'pending';
     doc.mismatches = [];
     doc.confidence = 0;
@@ -285,31 +312,71 @@ export const serveDocumentFile = async (req, res, next) => {
     // Set CORS and Cross-Origin Resource Policy so cross-domain images (Vercel -> Render) render seamlessly
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
 
+    // 1. If document has persistent base64 fileData in MongoDB Atlas, serve it directly
+    if (doc.fileData && doc.fileData.length > 0) {
+      let fileBuffer;
+      if (doc.fileData.startsWith('data:')) {
+        const base64Data = doc.fileData.split(',')[1];
+        fileBuffer = Buffer.from(base64Data, 'base64');
+      } else {
+        fileBuffer = Buffer.from(doc.fileData, 'base64');
+      }
+
+      const ext = path.extname(doc.originalName || '').toLowerCase();
+      let mime = doc.mimeType || 'application/pdf';
+      if (ext === '.png') mime = 'image/png';
+      else if (ext === '.jpg' || ext === '.jpeg') mime = 'image/jpeg';
+      else if (ext === '.pdf') mime = 'application/pdf';
+      else if (ext === '.svg') mime = 'image/svg+xml';
+      else if (ext === '.txt') mime = 'text/plain';
+
+      res.setHeader('Content-Type', mime);
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(doc.originalName || 'document')}"`);
+      return res.send(fileBuffer);
+    }
+
+    // 2. Lookup physical file from disk or bundled sample assets
     let filePath = doc.storedPath;
     let foundPhysicalFile = false;
 
-    if (filePath && fs.existsSync(filePath)) {
-      foundPhysicalFile = true;
-    } else {
-      const baseName = path.basename(filePath || '');
-      const candidatePaths = [
-        path.resolve(process.cwd(), filePath || ''),
-        path.resolve(process.cwd(), 'uploads', baseName),
-        path.resolve(process.cwd(), 'uploads/samples', baseName),
-        path.resolve(process.cwd(), 'server/uploads', baseName),
-        path.resolve(process.cwd(), 'server/uploads/samples', baseName),
-        path.resolve(process.cwd(), '../uploads', baseName),
-        path.resolve(process.cwd(), '../uploads/samples', baseName)
-      ];
+    const baseName = path.basename(filePath || '');
+    const origName = path.basename(doc.originalName || '');
+    const docKey = doc.docKey || '';
 
-      for (const p of candidatePaths) {
-        if (fs.existsSync(p) && !fs.lstatSync(p).isDirectory()) {
-          filePath = p;
-          foundPhysicalFile = true;
-          break;
-        }
+    // Standard sample document image mappings
+    let sampleKeyAlias = '';
+    if (docKey.includes('caste') || origName.includes('st') || origName.includes('caste')) sampleKeyAlias = 'st.jpg';
+    else if (docKey.includes('income') || origName.includes('ic') || origName.includes('income')) sampleKeyAlias = 'ic.jpg';
+    else if (docKey.includes('aadhaar') || origName.includes('aadhar')) sampleKeyAlias = 'aadharcard.jpg';
+    else if (docKey.includes('marksheet') || origName.includes('vtu')) sampleKeyAlias = 'vtu.jpg';
+    else if (docKey.includes('passbook') || origName.includes('saving')) sampleKeyAlias = 'saving_account.jpg';
+
+    const candidatePaths = [
+      filePath,
+      path.resolve(process.cwd(), filePath || ''),
+      path.resolve(process.cwd(), 'src/assets/sample_docs', baseName),
+      path.resolve(process.cwd(), 'src/assets/sample_docs', origName),
+      sampleKeyAlias ? path.resolve(process.cwd(), 'src/assets/sample_docs', sampleKeyAlias) : null,
+      path.resolve(process.cwd(), 'server/src/assets/sample_docs', baseName),
+      path.resolve(process.cwd(), 'server/src/assets/sample_docs', origName),
+      sampleKeyAlias ? path.resolve(process.cwd(), 'server/src/assets/sample_docs', sampleKeyAlias) : null,
+      path.resolve(process.cwd(), 'uploads', baseName),
+      path.resolve(process.cwd(), 'uploads/samples', baseName),
+      path.resolve(process.cwd(), 'uploads/samples', origName),
+      path.resolve(process.cwd(), 'server/uploads', baseName),
+      path.resolve(process.cwd(), 'server/uploads/samples', baseName),
+      path.resolve(process.cwd(), 'server/uploads/samples', origName),
+      path.resolve(process.cwd(), '../uploads', baseName),
+      path.resolve(process.cwd(), '../uploads/samples', baseName)
+    ].filter(Boolean);
+
+    for (const p of candidatePaths) {
+      if (fs.existsSync(p) && !fs.lstatSync(p).isDirectory()) {
+        filePath = p;
+        foundPhysicalFile = true;
+        break;
       }
     }
 
@@ -322,13 +389,20 @@ export const serveDocumentFile = async (req, res, next) => {
       else if (ext === '.svg') mime = 'image/svg+xml';
       else if (ext === '.txt') mime = 'text/plain';
 
+      // Asynchronously backfill fileData in MongoDB so subsequent requests load from DB
+      try {
+        const buf = fs.readFileSync(filePath);
+        doc.fileData = buf.toString('base64');
+        doc.mimeType = mime;
+        doc.save().catch(() => {});
+      } catch {}
+
       res.setHeader('Content-Type', mime);
       res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(doc.originalName || 'document')}"`);
       return res.sendFile(path.resolve(filePath));
     }
 
-    // If physical binary file is missing in cloud/container ephemeral storage:
-    // Generate and serve high-resolution SVG Certificate that renders in any browser/device!
+    // 3. If physical binary file is completely missing, generate and serve high-resolution SVG Certificate
     const svg = generateCertificateSvg(doc);
     res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
     res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(doc.originalName || 'certificate')}.svg"`);
@@ -337,3 +411,4 @@ export const serveDocumentFile = async (req, res, next) => {
     next(error);
   }
 };
+

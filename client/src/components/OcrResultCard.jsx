@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, ProgressBar, Alert, Badge, Table, Button, Modal, Tabs, Tab } from 'react-bootstrap';
 import { FileText, CheckCircle, AlertTriangle, XCircle, Eye, Cpu, Download, ExternalLink, ShieldCheck } from 'lucide-react';
 
@@ -6,6 +6,13 @@ const OcrResultCard = ({ document: doc }) => {
   const [showPreview, setShowPreview] = useState(false);
   const [activeTab, setActiveTab] = useState('preview');
   const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    if (showPreview) {
+      setImgError(false);
+      setActiveTab('preview');
+    }
+  }, [showPreview, doc?._id]);
 
   if (!doc) return null;
 
@@ -165,7 +172,6 @@ const OcrResultCard = ({ document: doc }) => {
                     <img
                       src={fileUrl}
                       alt={doc.originalName}
-                      crossOrigin="anonymous"
                       className="img-fluid rounded shadow-sm border bg-white"
                       style={{ maxHeight: '520px', objectFit: 'contain' }}
                       onError={() => setImgError(true)}
