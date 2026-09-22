@@ -66,7 +66,14 @@ function App() {
                 <Route path="/schemes" element={<SchemeList />} />
                 <Route path="/schemes/:id" element={<SchemeDetail />} />
                 <Route path="/eligibility" element={<EligibilityChecker />} />
-                <Route path="/ml-hub" element={<MachineLearningHub />} />
+                <Route
+                  path="/ml-hub"
+                  element={
+                    <ProtectedRoute allowedRoles={['verifier', 'officer', 'admin']}>
+                      <MachineLearningHub />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/verify-otp" element={<VerifyOtp />} />

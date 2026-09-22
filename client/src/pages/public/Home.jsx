@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Badge, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 import axiosClient from '../../api/axiosClient';
 import {
   Award, Globe, ShieldCheck, Sparkles, CheckCircle2, ArrowRight,
@@ -12,6 +13,8 @@ import {
 
 const Home = () => {
   const { t, lang } = useLanguage();
+  const { user, isAuthenticated } = useAuth();
+  const isStaff = isAuthenticated && ['admin', 'officer', 'verifier'].includes(user?.role);
 
   const [schemes, setSchemes] = useState([]);
   const [loadingSchemes, setLoadingSchemes] = useState(true);
@@ -249,12 +252,14 @@ const Home = () => {
                   Explore All 5 Schemes <ArrowRight size={18} />
                 </Link>
 
-                <Link
-                  to="/ml-hub"
-                  className="btn btn-outline-info btn-lg fw-semibold px-3 py-2.5 d-inline-flex align-items-center gap-2"
-                >
-                  <Cpu size={18} /> AI / ML Sandbox
-                </Link>
+                {isStaff && (
+                  <Link
+                    to="/ml-hub"
+                    className="btn btn-outline-info btn-lg fw-semibold px-3 py-2.5 d-inline-flex align-items-center gap-2"
+                  >
+                    <Cpu size={18} /> AI / ML Sandbox
+                  </Link>
+                )}
               </div>
             </Col>
 
@@ -592,9 +597,11 @@ const Home = () => {
               <Link to="/schemes" className="btn btn-gov-primary fw-semibold px-4 py-2">
                 Browse All 5 Schemes
               </Link>
-              <Link to="/ml-hub" className="btn btn-outline-dark fw-semibold px-4 py-2">
-                Explore Machine Learning Intelligence
-              </Link>
+              {isStaff && (
+                <Link to="/ml-hub" className="btn btn-outline-dark fw-semibold px-4 py-2">
+                  Explore Machine Learning Intelligence
+                </Link>
+              )}
             </div>
           </Col>
 

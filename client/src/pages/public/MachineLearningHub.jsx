@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Badge, ProgressBar, Spinner, Table, Alert } from 'react-bootstrap';
 import axiosClient from '../../api/axiosClient';
-import { Cpu, ShieldAlert, Award, CheckCircle2, TrendingUp, Sparkles, BookOpen, Layers, BarChart2 } from 'lucide-react';
+import Sidebar from '../../components/Sidebar';
+import { useAuth } from '../../context/AuthContext';
+import { Cpu, ShieldAlert, Award, CheckCircle2, TrendingUp, Sparkles, BookOpen, Layers, BarChart2, ShieldCheck, Lock } from 'lucide-react';
 
 const MachineLearningHub = () => {
+  const { user } = useAuth();
   const [modelInfo, setModelInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [predicting, setPredicting] = useState(false);
@@ -78,27 +81,45 @@ const MachineLearningHub = () => {
   }, []);
 
   return (
-    <Container className="py-4">
-      {/* Header Banner */}
-      <div className="bg-primary bg-gradient text-white rounded-3 p-4 mb-4 shadow-sm">
-        <Row className="align-items-center">
-          <Col md={8}>
-            <div className="d-flex align-items-center gap-2 mb-2">
-              <Cpu size={28} className="text-warning" />
-              <h2 className="fw-bold mb-0">MoTA Machine Learning Intelligence Hub</h2>
-            </div>
-            <p className="mb-0 text-white-50">
-              Trained on official MoTA scholarship guidelines (<code>tribal.nic.in</code> &amp; <code>dbttribal.gov.in</code>) using Scikit-Learn.
-              Automates applicant eligibility screening, merit percentile ranking, and zero-day fraud anomaly detection.
-            </p>
-          </Col>
-          <Col md={4} className="text-md-end mt-3 mt-md-0">
-            <Badge bg="warning" text="dark" className="fs-6 px-3 py-2">
-              ⚡ 4 Trained ML Models Active
-            </Badge>
-          </Col>
-        </Row>
-      </div>
+    <Container fluid className="py-4 px-lg-4">
+      <Row className="gy-4">
+        {/* Left Sidebar for Quick Workspace Navigation */}
+        <Col lg={3} md={4}>
+          <Sidebar />
+        </Col>
+
+        {/* Right Main ML Intelligence Workspace */}
+        <Col lg={9} md={8}>
+          {/* Header Banner */}
+          <div className="bg-primary bg-gradient text-white rounded-3 p-4 mb-4 shadow-sm">
+            <Row className="align-items-center">
+              <Col md={8}>
+                <div className="d-flex align-items-center gap-2 mb-2">
+                  <Cpu size={28} className="text-warning" />
+                  <h3 className="fw-bold mb-0">MoTA Machine Learning Intelligence Hub</h3>
+                </div>
+                <p className="mb-2 text-white-50 small">
+                  Trained on official MoTA scholarship guidelines (<code>tribal.nic.in</code> &amp; <code>dbttribal.gov.in</code>) using Scikit-Learn.
+                  Automates applicant eligibility screening, merit percentile ranking, and zero-day fraud anomaly detection.
+                </p>
+                <div className="d-flex align-items-center gap-2 flex-wrap">
+                  <Badge bg="warning" text="dark" className="small px-2.5 py-1">
+                    ⚡ 4 Trained ML Models Active
+                  </Badge>
+                  <Badge bg="light" text="dark" className="small px-2.5 py-1 d-inline-flex align-items-center gap-1">
+                    <Lock size={12} className="text-danger" /> Restricted Access: Verifier / Officer / Admin Only
+                  </Badge>
+                </div>
+              </Col>
+              <Col md={4} className="text-md-end mt-3 mt-md-0">
+                <div className="p-2.5 bg-white bg-opacity-10 rounded border border-white border-opacity-25 text-start small">
+                  <div className="text-warning fw-bold">Active User Session</div>
+                  <div className="text-white fw-semibold">{user?.name}</div>
+                  <div className="text-white-50 text-uppercase" style={{ fontSize: '0.75rem' }}>Role: <strong>{user?.role}</strong></div>
+                </div>
+              </Col>
+            </Row>
+          </div>
 
       {/* Model Performance Overview Cards */}
       <Row className="g-3 mb-4">
@@ -407,6 +428,8 @@ const MachineLearningHub = () => {
           </Row>
         </Card>
       )}
+        </Col>
+      </Row>
     </Container>
   );
 };
