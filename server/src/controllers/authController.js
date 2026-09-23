@@ -5,7 +5,7 @@ import { sendNotification } from '../services/notificationService.js';
 import { sendOtpEmail } from '../services/emailService.js';
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'mota_sih_26239_super_secure_jwt_secret_key_2026', {
+  return jwt.sign({ id }, process.env.JWT_SECRET || 'development_jwt_secret_key_change_in_production', {
     expiresIn: process.env.JWT_EXPIRE || '7d'
   });
 };

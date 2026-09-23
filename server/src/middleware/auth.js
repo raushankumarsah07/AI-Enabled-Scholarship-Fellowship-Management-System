@@ -16,7 +16,7 @@ export const protect = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mota_sih_26239_super_secure_jwt_secret_key_2026');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'development_jwt_secret_key_change_in_production');
     const user = await User.findById(decoded.id).select('-passwordHash');
 
     if (!user) {
