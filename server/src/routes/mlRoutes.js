@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { protect } from '../middleware/auth.js';
+import { requireRole } from '../middleware/roles.js';
 import { runMLPrediction, predictApplicationById } from '../services/mlService.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -11,8 +12,8 @@ const projectRoot = path.resolve(__dirname, '../../../');
 
 const router = express.Router();
 
-// GET /api/ml/model-info -> Model metrics, training metadata & feature weights
-router.get('/model-info', async (req, res, next) => {
+// GET /api/ml/model-info -> Model metrics, training metadata & feature weights (Admin Only)
+router.get('/model-info', protect, requireRole('admin'), async (req, res, next) => {
   try {
     let featureImportances = {};
     const impPath = path.join(projectRoot, 'ml/models/feature_importance.json');
@@ -53,8 +54,8 @@ router.get('/model-info', async (req, res, next) => {
   }
 });
 
-// POST /api/ml/predict-custom -> Predict ML outcomes for any custom input payload
-router.post('/predict-custom', async (req, res, next) => {
+// POST /api/ml/predict-custom -> Predict ML outcomes for any custom input payload (Admin Only)
+router.post('/predict-custom', protect, requireRole('admin'), async (req, res, next) => {
   try {
     const payload = req.body || {};
     const prediction = await runMLPrediction(payload);
@@ -67,8 +68,8 @@ router.post('/predict-custom', async (req, res, next) => {
   }
 });
 
-// GET /api/ml/predict/:applicationId -> Predict ML metrics for an application
-router.get('/predict/:applicationId', protect, async (req, res, next) => {
+// GET /api/ml/predict/:applicationId -> Predict ML metrics for an application (Officer & Admin)
+router.get('/predict/:applicationId', protect, requireRole('officer', 'admin'), async (req, res, next) => {
   try {
     const { applicationId } = req.params;
     const result = await predictApplicationById(applicationId);

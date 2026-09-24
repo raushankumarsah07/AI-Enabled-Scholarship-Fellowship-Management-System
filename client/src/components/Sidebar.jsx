@@ -82,10 +82,6 @@ const Sidebar = () => {
               <AlertTriangle size={18} className="text-danger" />
               <span>Flagged Documents</span>
             </NavLink>
-            <NavLink to="/ml-hub" className={({ isActive }) => `gov-sidebar-item ${isActive ? 'active' : ''}`}>
-              <Cpu size={18} className="text-info" />
-              <span>⚡ ML Intelligence Hub</span>
-            </NavLink>
           </>
         )}
 
@@ -103,10 +99,6 @@ const Sidebar = () => {
             <NavLink to="/officer/workflow" className={({ isActive }) => `gov-sidebar-item ${isActive ? 'active' : ''}`}>
               <Layers size={18} />
               <span>Selection Workflow</span>
-            </NavLink>
-            <NavLink to="/ml-hub" className={({ isActive }) => `gov-sidebar-item ${isActive ? 'active' : ''}`}>
-              <Cpu size={18} className="text-info" />
-              <span>⚡ ML Intelligence Hub</span>
             </NavLink>
           </>
         )}

@@ -24,7 +24,7 @@ const Navbar = () => {
     return '/applicant/dashboard';
   };
 
-  const isStaff = isAuthenticated && ['admin', 'officer', 'verifier'].includes(user?.role);
+  const isAdmin = isAuthenticated && user?.role === 'admin';
 
   return (
     <BsNavbar expand="lg" className="gov-header-bg py-2 shadow-sm border-bottom border-secondary border-opacity-25" variant="dark">
@@ -48,8 +48,8 @@ const Navbar = () => {
               {t('nav.eligibility', 'Eligibility Pre-Check')}
             </Nav.Link>
 
-            {/* ML Hub (AI Models) - Authorized Staff Only (Officer, Admin, Verifier) */}
-            {isStaff && (
+            {/* ML Hub (AI Models) - Admin Only */}
+            {isAdmin && (
               <Nav.Link as={NavLink} to="/ml-hub" className="gov-nav-link text-info fw-semibold">
                 ⚡ ML Hub (AI Models)
               </Nav.Link>
@@ -113,9 +113,6 @@ const Navbar = () => {
                       <NavDropdown.Item as={Link} to="/verifier/queue">
                         <ShieldCheck size={15} className="me-2" /> {t('nav.verifier_queue', 'Verification Queue')}
                       </NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/ml-hub">
-                        <Cpu size={15} className="me-2 text-info" /> ML Intelligence Hub
-                      </NavDropdown.Item>
                     </>
                   )}
 
@@ -126,9 +123,6 @@ const Navbar = () => {
                       </NavDropdown.Item>
                       <NavDropdown.Item as={Link} to="/officer/merit">
                         <Award size={15} className="me-2" /> {t('nav.merit_list', 'Merit List')}
-                      </NavDropdown.Item>
-                      <NavDropdown.Item as={Link} to="/ml-hub">
-                        <Cpu size={15} className="me-2 text-info" /> ML Intelligence Hub
                       </NavDropdown.Item>
                     </>
                   )}

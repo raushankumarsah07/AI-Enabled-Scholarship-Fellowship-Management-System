@@ -69,7 +69,7 @@ function App() {
                 <Route
                   path="/ml-hub"
                   element={
-                    <ProtectedRoute allowedRoles={['verifier', 'officer', 'admin']}>
+                    <ProtectedRoute allowedRoles={['admin']}>
                       <MachineLearningHub />
                     </ProtectedRoute>
                   }

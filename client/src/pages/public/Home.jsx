@@ -14,7 +14,7 @@ import {
 const Home = () => {
   const { t, lang } = useLanguage();
   const { user, isAuthenticated } = useAuth();
-  const isStaff = isAuthenticated && ['admin', 'officer', 'verifier'].includes(user?.role);
+  const isAdmin = isAuthenticated && user?.role === 'admin';
 
   const [schemes, setSchemes] = useState([]);
   const [loadingSchemes, setLoadingSchemes] = useState(true);
@@ -252,7 +252,7 @@ const Home = () => {
                   Explore All 5 Schemes <ArrowRight size={18} />
                 </Link>
 
-                {isStaff && (
+                {isAdmin && (
                   <Link
                     to="/ml-hub"
                     className="btn btn-outline-info btn-lg fw-semibold px-3 py-2.5 d-inline-flex align-items-center gap-2"
@@ -597,7 +597,7 @@ const Home = () => {
               <Link to="/schemes" className="btn btn-gov-primary fw-semibold px-4 py-2">
                 Browse All 5 Schemes
               </Link>
-              {isStaff && (
+              {isAdmin && (
                 <Link to="/ml-hub" className="btn btn-outline-dark fw-semibold px-4 py-2">
                   Explore Machine Learning Intelligence
                 </Link>
