@@ -20,7 +20,7 @@
 2. **`AZKMI` — National Overseas Scholarship (NOS):**
    - Central Sector Scheme for Master's and Ph.D. studies abroad in Top 500 QS World Universities.
    - **Financials:** 100% full international tuition reimbursement + annual living allowance ($15,400 USD / £9,900 GBP) + airfare + visa fees.
-   - **Slots:** 100 annual slots (Maximum annual family income cap: ≤ ₹6.00 Lakhs).
+   - **Slots:** 20 annual slots (17 ST + 3 PVTG) (Maximum annual family income cap: ≤ ₹6.00 Lakhs).
 3. **`A023B` — Top Class Education for ST Students:**
    - Full institute tuition reimbursement + ₹3,000/mo boarding allowance + ₹45,000 one-time computer/hardware grant for ST students admitted to 265+ Premier Institutes (IITs, IIMs, AIIMS, NITs, NLUs).
 4. **`BVOBC` — Post-Matric Scholarship Scheme for ST Students:**

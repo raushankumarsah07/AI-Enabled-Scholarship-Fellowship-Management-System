@@ -94,7 +94,7 @@ Rule-based engines are excellent for deterministic binary checks (e.g., `income 
 - ML models (Isolation Forests & Gradient Boosted Classifiers) identify synthetic tampering and anomaly clusters that bypass simple if-else statements.
 
 ### 2. Multi-Criteria Merit Ranking & Quota Weighting
-- Allocating limited national quotas (e.g., exactly **750 NFST slots** and **100 NOS slots**) requires a holistic scoring equation.
+- Allocating limited national quotas (e.g., exactly **750 NFST slots** and **20 NOS slots**) requires a holistic scoring equation.
 - The ML Merit Regressor combines GPA, NIRF/QS university ranking tiers, economic vulnerability index, disability status (5% PwD), and affirmative gender equity (30% women reservation) into a normalized continuous score (0–100) and All-India percentile rank.
 
 ### 3. Personalized Scheme Recommendations
@@ -265,7 +265,7 @@ Here is how an application travels through the complete verification lifecycle f
 | Code | Scheme Title | Scope & Eligible Levels | Financial Support | Annual Target |
 | :---: | :--- | :--- | :--- | :---: |
 | **`ARG45`** | **National Fellowship for ST Students (NFST)** | M.Phil & Ph.D. scholars in recognized Indian Universities, IITs, NITs, IISc | ₹31,000–₹35,000/mo JRF/SRF + ₹20,800/yr contingency + HRA | **750 Annual Slots** *(30% Women Quota)* |
-| **`AZKMI`** | **National Overseas Scholarship (NOS)** | Master's & Ph.D. in Top 500 QS World Universities abroad | 100% Tuition + $15,400 USD / £9,900 GBP living allowance + return airfare | **100 Annual Slots** *(Income ≤ ₹6.0L)* |
+| **`AZKMI`** | **National Overseas Scholarship (NOS)** | Master's & Ph.D. in Top 500 QS World Universities abroad | 100% Tuition + $15,400 USD / £9,900 GBP living allowance + return airfare | **20 Annual Slots (17 ST + 3 PVTG)** *(Income ≤ ₹6.0L)* |
 | **`A023B`** | **Top Class Education for ST Students** | UG/PG degree students in 265+ notified premier institutes (IIT, IIM, AIIMS, NLU) | Full institute fees + ₹3,000/mo boarding + ₹45,000 one-time computer grant | **Institutes Notified** *(Income ≤ ₹6.0L)* |
 | **`BVOBC`** | **Post-Matric Scholarship for ST Students** | Class 11, 12, Degree, Diploma, Medical, Engineering in Indian institutions | Direct Benefit Transfer (DBT) tuition fees + monthly maintenance allowance | **Centrally Sponsored** *(Pan-India)* |
 | **`BPVGK`** | **Pre-Matric Scholarship for ST Students** | Class 9th & 10th Secondary ST Students in recognized schools | ₹3,500–₹7,000/yr DBT stipend to eliminate secondary education dropouts | **Centrally Sponsored** *(Pan-India)* |

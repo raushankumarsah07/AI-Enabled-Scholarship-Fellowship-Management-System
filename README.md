@@ -185,7 +185,7 @@ All five official scholarship & fellowship programmes administered by the Minist
 | Scheme Code | Scheme Name | Level & Scope | Financial Benefits | Annual Seats / Target |
 | :---: | :--- | :--- | :--- | :---: |
 | **`ARG45`** | **National Fellowship for ST Students (NFST)** | M.Phil & Ph.D. in Indian Universities, IITs, NITs, IISc | ₹31,000–₹35,000/mo JRF/SRF stipend + ₹20,800/yr contingency + HRA | **750 Slots** *(30% Women Quota)* |
-| **`AZKMI`** | **National Overseas Scholarship (NOS)** | Master's & Ph.D. in Top 500 QS World Universities | 100% Tuition + $15,400 USD / £9,900 GBP living allowance + Airfare | **100 Slots** *(Income ≤ ₹6.0L)* |
+| **`AZKMI`** | **National Overseas Scholarship (NOS)** | Master's & Ph.D. in Top 500 QS World Universities | 100% Tuition + $15,400 USD / £9,900 GBP living allowance + Airfare | **20 Slots (17 ST + 3 PVTG)** *(Income ≤ ₹6.0L)* |
 | **`A023B`** | **Top Class Education for ST Students** | UG/PG Degrees in 265+ Premier Institutes (IIT, IIM, AIIMS, NLU) | Full institute fees + ₹3,000/mo boarding + ₹45,000 one-time computer grant | **Institutes Notified** *(Income ≤ ₹6.0L)* |
 | **`BVOBC`** | **Post-Matric Scholarship for ST Students** | Class 11, 12, Degree, Diploma, Medical, Engineering | Direct Benefit Transfer (DBT) tuition fees + monthly maintenance allowance | **Centrally Sponsored** *(Pan-India)* |
 | **`BPVGK`** | **Pre-Matric Scholarship for ST Students** | Class 9th & 10th Secondary ST Students | ₹3,500–₹7,000/yr DBT stipend to eliminate secondary dropouts | **Centrally Sponsored** *(Pan-India)* |
