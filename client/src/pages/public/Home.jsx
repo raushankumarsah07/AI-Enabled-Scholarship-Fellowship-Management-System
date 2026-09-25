@@ -32,7 +32,7 @@ const Home = () => {
       badgeColor: '#FF9933',
       title: 'National Fellowship for ST Students (NFST)',
       tagline: 'Empowering Scheduled Tribe Research Scholars in India',
-      subtitle: 'Direct financial fellowship for M.Phil & Ph.D. scholars in Indian Universities, IITs, NITs, and National Research Laboratories with ₹31,000–₹35,000/mo stipend + contingency.',
+      subtitle: 'Direct financial fellowship for M.Phil & Ph.D. scholars in Indian Universities, IITs, NITs, and National Research Laboratories with JRF/SRF fellowship as per UGC norms + contingency.',
       stats: [
         { label: 'Annual Fellowships', value: '750 Seats' },
         { label: 'JRF Stipend Support', value: '₹3.84L / yr' },

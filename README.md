@@ -12,6 +12,8 @@
 [![ML Pipeline](https://img.shields.io/badge/ML%20Accuracy-99.17%25%20Random%20Forest-FF6F00.svg?style=for-the-badge&logo=scikit-learn)](https://scikit-learn.org/)
 [![Offline OCR](https://img.shields.io/badge/OCR-100%25%20Offline%20Tesseract-blueviolet.svg?style=for-the-badge)](https://tesseract.projectnaptha.com/)
 
+**🔗 Live Demo:** https://ai-enabled-scholarship-fellowship-m.vercel.app  ·  Try: admin@mota.gov.in / Admin@123  ·  Student: rahul.st@example.com / Applicant@123
+
 <br/>
 
 > **"Empowering Scheduled Tribe (ST) Scholars through AI-Assisted Transparent Governance, Local Document Intelligence, and Automated Merit Delivery."**
@@ -184,7 +186,7 @@ All five official scholarship & fellowship programmes administered by the Minist
 
 | Scheme Code | Scheme Name | Level & Scope | Financial Benefits | Annual Seats / Target |
 | :---: | :--- | :--- | :--- | :---: |
-| **`ARG45`** | **National Fellowship for ST Students (NFST)** | M.Phil & Ph.D. in Indian Universities, IITs, NITs, IISc | ₹31,000–₹35,000/mo JRF/SRF stipend + ₹20,800/yr contingency + HRA | **750 Slots** *(30% Women Quota)* |
+| **`ARG45`** | **National Fellowship for ST Students (NFST)** | M.Phil & Ph.D. in Indian Universities, IITs, NITs, IISc | JRF/SRF fellowship as per UGC norms + ₹20,800/yr contingency + HRA | **750 Slots** *(30% Women Quota)* |
 | **`AZKMI`** | **National Overseas Scholarship (NOS)** | Master's & Ph.D. in Top 500 QS World Universities | 100% Tuition + $15,400 USD / £9,900 GBP living allowance + Airfare | **20 Slots (17 ST + 3 PVTG)** *(Income ≤ ₹6.0L)* |
 | **`A023B`** | **Top Class Education for ST Students** | UG/PG Degrees in 265+ Premier Institutes (IIT, IIM, AIIMS, NLU) | Full institute fees + ₹3,000/mo boarding + ₹45,000 one-time computer grant | **Institutes Notified** *(Income ≤ ₹6.0L)* |
 | **`BVOBC`** | **Post-Matric Scholarship for ST Students** | Class 11, 12, Degree, Diploma, Medical, Engineering | Direct Benefit Transfer (DBT) tuition fees + monthly maintenance allowance | **Centrally Sponsored** *(Pan-India)* |
@@ -216,7 +218,7 @@ Click any role below or log in directly on the portal:
 | 🔍 **Document Verifier** | `verifier1@mota.gov.in` | `Verifier@123` | OCR document inspection queue, Deficiency raising |
 | ⚖️ **Scrutiny Officer** | `officer1@mota.gov.in` | `Officer@123` | Eligibility scrutiny, Formal approvals with justifications |
 | 🎓 **ST Scholar (Applicant)** | `rahul.st@example.com` | `Applicant@123` | Fellowship dashboard, Deficiency inbox, DBT tracking |
-| 🎓 **ST Scholar (Overseas)** | `sunita.st@example.com` | `Applicant@123` | National Overseas Scholarship application tracking |
+| 🎓 **ST Scholar (Overseas)** | `sunita.soren@example.com` | `Applicant@123` | National Overseas Scholarship application tracking |
 
 ---
 

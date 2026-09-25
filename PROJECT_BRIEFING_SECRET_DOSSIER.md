@@ -15,7 +15,7 @@
 ### Target Official MoTA Schemes (All 5 Integrated):
 1. **`ARG45` — National Fellowship for Scheduled Tribes (NFST):**
    - Central Sector Scheme for M.Phil and Ph.D. research scholars in Indian Universities, IITs, NITs, and IISc.
-   - **Financials:** ₹31,000/mo (JRF) to ₹35,000/mo (SRF) stipend + ₹20,800/year contingency + HRA.
+   - **Financials:** JRF/SRF fellowship as per UGC norms + ₹20,800/year contingency + HRA.
    - **Slots:** 750 annual fellowships with a statutory **30% women quota**.
 2. **`AZKMI` — National Overseas Scholarship (NOS):**
    - Central Sector Scheme for Master's and Ph.D. studies abroad in Top 500 QS World Universities.
@@ -140,7 +140,7 @@ graph TD
 | 🔍 **Document Verifier** | `verifier1@mota.gov.in` | `Verifier@123` | Document verification queue, OCR inspection, Deficiency raising |
 | ⚖️ **Scrutiny Officer** | `officer1@mota.gov.in` | `Officer@123` | Scrutiny review, Eligibility determination with mandatory written justification |
 | 🎓 **ST Applicant (NFST)** | `rahul.st@example.com` | `Applicant@123` | Application status, Deficiency resolution, Fellowship DBT tracking |
-| 🎓 **ST Applicant (NOS)** | `sunita.st@example.com` | `Applicant@123` | National Overseas Scholarship tracking |
+| 🎓 **ST Applicant (NOS)** | `sunita.soren@example.com` | `Applicant@123` | National Overseas Scholarship tracking |
 
 ---
 

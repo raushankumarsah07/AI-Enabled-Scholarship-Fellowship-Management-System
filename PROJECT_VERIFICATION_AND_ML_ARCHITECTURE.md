@@ -264,7 +264,7 @@ Here is how an application travels through the complete verification lifecycle f
 
 | Code | Scheme Title | Scope & Eligible Levels | Financial Support | Annual Target |
 | :---: | :--- | :--- | :--- | :---: |
-| **`ARG45`** | **National Fellowship for ST Students (NFST)** | M.Phil & Ph.D. scholars in recognized Indian Universities, IITs, NITs, IISc | ₹31,000–₹35,000/mo JRF/SRF + ₹20,800/yr contingency + HRA | **750 Annual Slots** *(30% Women Quota)* |
+| **`ARG45`** | **National Fellowship for ST Students (NFST)** | M.Phil & Ph.D. scholars in recognized Indian Universities, IITs, NITs, IISc | JRF/SRF fellowship as per UGC norms + ₹20,800/yr contingency + HRA | **750 Annual Slots** *(30% Women Quota)* |
 | **`AZKMI`** | **National Overseas Scholarship (NOS)** | Master's & Ph.D. in Top 500 QS World Universities abroad | 100% Tuition + $15,400 USD / £9,900 GBP living allowance + return airfare | **20 Annual Slots (17 ST + 3 PVTG)** *(Income ≤ ₹6.0L)* |
 | **`A023B`** | **Top Class Education for ST Students** | UG/PG degree students in 265+ notified premier institutes (IIT, IIM, AIIMS, NLU) | Full institute fees + ₹3,000/mo boarding + ₹45,000 one-time computer grant | **Institutes Notified** *(Income ≤ ₹6.0L)* |
 | **`BVOBC`** | **Post-Matric Scholarship for ST Students** | Class 11, 12, Degree, Diploma, Medical, Engineering in Indian institutions | Direct Benefit Transfer (DBT) tuition fees + monthly maintenance allowance | **Centrally Sponsored** *(Pan-India)* |
