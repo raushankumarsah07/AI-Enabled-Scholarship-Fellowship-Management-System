@@ -51,27 +51,27 @@
 
 ```mermaid
 graph TD
-    Client[🌐 React 18 + Vite Frontend App] -->|REST API / JWT| Server[⚡ Node.js + Express Backend :5001]
-    
+    Client["🌐 React 18 + Vite Frontend App"] -->|REST API / JWT| Server["⚡ Node.js + Express Backend :5001"]
+
     subgraph "Backend Core Services"
-        Server --> Auth[🔐 Auth & Real Email OTP Service]
-        Server --> RulesEngine[⚡ Data-Driven Rules Engine]
-        Server --> OCRService[👁️ Offline OCR Engine: Tesseract.js + pdf-parse]
-        Server --> MLBridge[🤖 Python ML Subprocess Bridge]
-        Server --> MeritService[📊 Merit & Horizontal Quota Engine]
-        Server --> FraudService[🛡️ Anomaly & Duplicate Certificate Detection]
-        Server --> AuditService[📜 Immutable Audit Trail]
+        Server --> Auth["🔐 Auth & Real Email OTP Service"]
+        Server --> RulesEngine["⚡ Data-Driven Rules Engine"]
+        Server --> OCRService["👁️ Offline OCR Engine: Tesseract.js + pdf-parse"]
+        Server --> MLBridge["🤖 Python ML Subprocess Bridge"]
+        Server --> MeritService["📊 Merit & Horizontal Quota Engine"]
+        Server --> FraudService["🛡️ Anomaly & Duplicate Certificate Detection"]
+        Server --> AuditService["📜 Immutable Audit Trail"]
     end
 
     subgraph "AI & ML Engines"
-        MLBridge --> Model1[🌲 Eligibility Classifier (99.17%)]
-        MLBridge --> Model2[📈 Merit Score Regressor (0.9991 R²)]
-        MLBridge --> Model3[🛡️ Fraud Isolation Forest (100% ROC)]
-        MLBridge --> Model4[🎯 Scheme Recommender (86.2%)]
+        MLBridge --> Model1["🌲 Eligibility Classifier (99.17%)"]
+        MLBridge --> Model2["📈 Merit Score Regressor (0.9991 R²)"]
+        MLBridge --> Model3["🛡️ Fraud Isolation Forest (100% ROC)"]
+        MLBridge --> Model4["🎯 Scheme Recommender (86.2%)"]
     end
 
     Server -->|Mongoose ODM| DB[(MongoDB Atlas Cloud / Local DB)]
-    OCRService -->|Local Storage| Uploads[📁 /server/uploads & /samples]
+    OCRService -->|Local Storage| Uploads["📁 /server/uploads & /samples"]
 ```
 
 ---

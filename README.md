@@ -64,33 +64,33 @@ This platform modernizes the entire scholarship governance pipeline through an *
 ```mermaid
 graph TD
     subgraph "🌐 Client Tier (React 18 + Vite + Bootstrap 5)"
-        User[🎓 ST Applicant / Scholar] -->|Bilingual UI / Dark Mode| WebApp[Vite SPA :5173]
-        Staff[👑 Admin / 🔍 Verifier / ⚖️ Officer] -->|RBAC Dashboards| WebApp
+        User["🎓 ST Applicant / Scholar"] -->|Bilingual UI / Dark Mode| WebApp["Vite SPA :5173"]
+        Staff["👑 Admin / 🔍 Verifier / ⚖️ Officer"] -->|RBAC Dashboards| WebApp
     end
 
     subgraph "⚡ Backend & Micro-Services Tier (Node.js + Express :5001)"
-        WebApp -->|REST API / JWT / CORS| APIGateway[Express API Gateway]
-        
-        APIGateway --> AuthModule[🔐 Auth & Real Email OTP Service]
-        APIGateway --> RulesEngine[⚡ Dynamic Rules & Simulation Engine]
-        APIGateway --> OCREngine[👁️ Local Offline OCR Engine (Tesseract.js)]
-        APIGateway --> MLBridge[🤖 Python Subprocess ML Inference Bridge]
-        APIGateway --> MeritEngine[📊 Merit Rank & 30% Women Quota Service]
-        APIGateway --> FraudEngine[🛡️ Anomaly & Duplicate Certificate Catcher]
-        APIGateway --> AuditLog[📜 Tamper-Evident Immutable Audit Logger]
+        WebApp -->|REST API / JWT / CORS| APIGateway["Express API Gateway"]
+
+        APIGateway --> AuthModule["🔐 Auth & Real Email OTP Service"]
+        APIGateway --> RulesEngine["⚡ Dynamic Rules & Simulation Engine"]
+        APIGateway --> OCREngine["👁️ Local Offline OCR Engine (Tesseract.js)"]
+        APIGateway --> MLBridge["🤖 Python Subprocess ML Inference Bridge"]
+        APIGateway --> MeritEngine["📊 Merit Rank & 30% Women Quota Service"]
+        APIGateway --> FraudEngine["🛡️ Anomaly & Duplicate Certificate Catcher"]
+        APIGateway --> AuditLog["📜 Tamper-Evident Immutable Audit Logger"]
     end
 
     subgraph "🤖 AI & Machine Learning Tier"
-        MLBridge -->|Sub-10ms CLI| MLModels[📁 Scikit-Learn Joblib Models]
-        MLModels --> Mod1[🌲 Eligibility Classifier (99.17%)]
-        MLModels --> Mod2[📈 Merit Score Regressor (0.9991 R²)]
-        MLModels --> Mod3[🛡️ Fraud Isolation Forest (100% ROC)]
-        MLModels --> Mod4[🎯 Scheme Recommender (86.2%)]
+        MLBridge -->|Sub-10ms CLI| MLModels["📁 Scikit-Learn Joblib Models"]
+        MLModels --> Mod1["🌲 Eligibility Classifier (99.17%)"]
+        MLModels --> Mod2["📈 Merit Score Regressor (0.9991 R²)"]
+        MLModels --> Mod3["🛡️ Fraud Isolation Forest (100% ROC)"]
+        MLModels --> Mod4["🎯 Scheme Recommender (86.2%)"]
     end
 
     subgraph "💾 Persistence & Storage Tier"
         APIGateway -->|Mongoose ODM| CloudDB[(MongoDB Atlas / Local DB)]
-        OCREngine -->|Disk Storage| FileStore[📁 /server/uploads & /samples]
+        OCREngine -->|Disk Storage| FileStore["📁 /server/uploads & /samples"]
     end
 ```
 
