@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Badge, Button, Spinner, Alert, Table, Modal } from 'react-bootstrap';
-import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, Link, useSearchParams, useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import confetti from 'canvas-confetti';
 import axiosClient from '../../api/axiosClient';
 import Sidebar from '../../components/Sidebar';
@@ -13,8 +14,14 @@ import { FileText, ArrowLeft, Award, ShieldCheck, AlertTriangle, CheckCircle2, H
 const ApplicationDetail = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const isJustSubmitted = searchParams.get('submitted') === 'true';
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const role = user?.role;
+
+  if (role === 'verifier') {
+    return <Navigate to={`/verifier/review/${id}`} replace />;
+  }
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -89,9 +96,20 @@ const ApplicationDetail = () => {
         <Col lg={9} md={8}>
           {/* Top Navigation */}
           <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <Link to="/applicant/applications" className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
-              <ArrowLeft size={14} /> Back to My Applications
-            </Link>
+            {role === 'officer' || role === 'admin' ? (
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                className="d-inline-flex align-items-center gap-1"
+                onClick={() => navigate(-1)}
+              >
+                <ArrowLeft size={14} /> Back
+              </Button>
+            ) : (
+              <Link to="/applicant/applications" className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
+                <ArrowLeft size={14} /> Back to My Applications
+              </Link>
+            )}
             <Button
               variant="outline-danger"
               size="sm"

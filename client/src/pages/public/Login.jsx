@@ -25,18 +25,22 @@ const Login = () => {
       const data = await login(email, password);
       if (data.success) {
         const role = data.user.role;
-        const redirect = location.state?.from?.pathname;
-        if (redirect) {
-          navigate(redirect);
-        } else if (role === 'admin') {
-          navigate('/admin/dashboard');
-        } else if (role === 'verifier') {
-          navigate('/verifier/queue');
-        } else if (role === 'officer') {
-          navigate('/officer/scrutiny');
-        } else {
-          navigate('/applicant/dashboard');
-        }
+        const fromPath = location.state?.from?.pathname;
+        const roleHomes = {
+          admin: '/admin/dashboard',
+          verifier: '/verifier/queue',
+          officer: '/officer/scrutiny',
+          applicant: '/applicant/dashboard'
+        };
+        const defaultPath = roleHomes[role] || '/applicant/dashboard';
+
+        const isAllowedPath = fromPath && (
+          fromPath.startsWith('/' + role) ||
+          fromPath.startsWith('/schemes') ||
+          fromPath.startsWith('/eligibility')
+        );
+
+        navigate(isAllowedPath ? fromPath : defaultPath, { replace: true });
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid email or password entered.');

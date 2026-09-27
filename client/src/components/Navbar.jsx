@@ -12,8 +12,8 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    navigate('/login', { replace: true });
     logout();
-    navigate('/login');
   };
 
   const getDashboardPath = () => {
