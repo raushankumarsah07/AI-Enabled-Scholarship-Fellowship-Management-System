@@ -580,14 +580,16 @@ export const processDocumentAsync = async (documentId) => {
         status: 'open'
       });
 
-      // Update Application stage to DEFICIENT
-      application.status = 'DEFICIENT';
-      application.stageHistory.push({
-        stage: 'DEFICIENT',
-        by: 'AI OCR Engine',
-        remark: `Deficiency raised for ${doc.docKey}: ${reason}`
-      });
-      await application.save();
+      // Update Application stage to DEFICIENT (only if not currently a draft)
+      if (application.status !== 'DRAFT') {
+        application.status = 'DEFICIENT';
+        application.stageHistory.push({
+          stage: 'DEFICIENT',
+          by: 'AI OCR Engine',
+          remark: `Deficiency raised for ${doc.docKey}: ${reason}`
+        });
+        await application.save();
+      }
 
       // Send deficiency notification
       await sendNotification({

@@ -14,9 +14,8 @@ import { requireRole } from '../middleware/roles.js';
 const router = express.Router();
 
 router.use(protect);
+router.get('/merit/:schemeId', requireRole('admin', 'officer'), getMeritList);
 router.use(requireRole('admin'));
-
-router.get('/merit/:schemeId', getMeritList);
 router.post('/merit/:schemeId/publish', publishMeritList);
 router.post('/applications/:id/override', overrideApplicationStatus);
 router.get('/anomalies', getAnomalies);

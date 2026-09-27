@@ -238,7 +238,8 @@ const NewApplication = () => {
           category: user?.profile?.category || 'ST',
           marksPercent: formData.marksPercent || user?.profile?.education?.marksPercent,
           familyIncome: formData.familyIncome || user?.profile?.familyIncome,
-          educationLevel: user?.profile?.education?.level || 'masters'
+          educationLevel: user?.profile?.education?.level || 'masters',
+          age: formData.age || (user?.profile?.dob ? Math.floor((Date.now() - new Date(user.profile.dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : undefined)
         });
 
         if (evalRes.data.success) {

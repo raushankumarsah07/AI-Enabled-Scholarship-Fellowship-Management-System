@@ -46,8 +46,8 @@ export const processChatbotMessage = async (userId, message) => {
     const isNfst = query.includes('nfst') || query.includes('fellowship') || query.includes('national');
 
     let schemeCode = null;
-    if (isNos) schemeCode = 'NOS';
-    if (isNfst) schemeCode = 'NFST';
+    if (isNfst) schemeCode = 'ARG45';
+    if (isNos) schemeCode = 'AZKMI';
 
     let filter = { isActive: true };
     if (schemeCode) filter.code = schemeCode;
@@ -197,7 +197,7 @@ export const processChatbotMessage = async (userId, message) => {
     const isNos = query.includes('nos') || query.includes('overseas');
     const isNfst = query.includes('nfst') || query.includes('national') || query.includes('fellowship');
 
-    const code = isNos ? 'NOS' : (isNfst ? 'NFST' : 'NFST');
+    const code = isNos ? 'AZKMI' : 'ARG45';
     const scheme = await Scheme.findOne({ code, isActive: true });
 
     if (!scheme) {
@@ -210,7 +210,7 @@ export const processChatbotMessage = async (userId, message) => {
 
     if (!user) {
       return {
-        reply: `To check eligibility for **${scheme.name} (${scheme.code})**:\n• Category: Must be **Scheduled Tribe (ST)**\n• Max Family Income: **₹8,00,000 per annum**\n• Minimum Marks: **60%** in qualifying degree\n• Age Limit: **35 Years**\n\n*Use our **Eligibility Pre-Check Tool** on the top menu to enter your details without logging in!*`,
+        reply: `To check eligibility for **${scheme.name} (${scheme.code})**:\n${(scheme.eligibilityRules || []).map(r => `• ${r.message}`).join('\n')}\n\n*Use our **Eligibility Pre-Check Tool** on the top menu to enter your details without logging in!*`,
         source: 'Scheme Eligibility Guidelines',
         suggestions: ['Open Eligibility Checker', 'Documents required for ' + scheme.code]
       };
