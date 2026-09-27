@@ -40,8 +40,8 @@ const Home = () => {
       ],
       preCheckCode: 'ARG45',
       image: '/images/hero/slide_nfst.jpg',
-      alt: 'Research scholars and faculty in a scientific research laboratory at Jawaharlal Nehru University',
-      credit: 'Photo: Ambujmishra89 / Wikimedia Commons, CC BY-SA 4.0',
+      alt: 'ST student engaged in research and digital documentation on a laptop at Kalinga Institute of Social Sciences',
+      credit: 'Photo: Subhashish Panigrahi / Wikimedia Commons, CC BY-SA 3.0',
       floatingBadges: [
         { position: 'top-left', text: '🎓 750 Annual Fellowships', color: '#10b981' },
         { position: 'bottom-right', text: '🔬 Indian Universities & IITs', color: '#38bdf8' }
@@ -63,8 +63,8 @@ const Home = () => {
       ],
       preCheckCode: 'AZKMI',
       image: '/images/hero/slide_nos.jpg',
-      alt: 'Scholar in convocation attire receiving an academic medal at an institutional university convocation',
-      credit: "Photo: President's Secretariat / PIB, GODL-India",
+      alt: 'Graduates tossing academic caps in celebration at convocation',
+      credit: 'Photo: AKS.9955 / Wikimedia Commons, CC BY-SA 4.0',
       floatingBadges: [
         { position: 'top-left', text: '✈️ Oxford, MIT & Harvard', color: '#f59e0b' },
         { position: 'bottom-right', text: '🌍 20 Overseas Slots (17 ST + 3 PVTG)', color: '#38bdf8' }
@@ -308,8 +308,8 @@ const Home = () => {
                     <div
                       style={{
                         position: 'absolute',
-                        bottom: '10px',
-                        left: '12px',
+                        top: '10px',
+                        right: '12px',
                         fontSize: '0.68rem',
                         color: 'rgba(255, 255, 255, 0.85)',
                         background: 'rgba(15, 23, 42, 0.65)',
@@ -317,10 +317,8 @@ const Home = () => {
                         padding: '3px 8px',
                         borderRadius: '4px',
                         pointerEvents: 'none',
-                        maxWidth: '92%',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
+                        maxWidth: '70%',
+                        textAlign: 'right',
                         zIndex: 2,
                         letterSpacing: '0.01em'
                       }}
@@ -577,7 +575,7 @@ const Home = () => {
                 </div>
                 <h5 className="fw-bold fs-6 mb-2">2. Offline AI OCR Scan</h5>
                 <p className="small text-secondary mb-0">
-                  Upload certificates and marksheets. Local offline OCR extracts data, detects tampering, and validates in seconds.
+                  Upload certificates and marksheets. Local offline OCR extracts data, flags mismatches and repeated files, and validates in seconds.
                 </p>
               </Card>
             </Col>

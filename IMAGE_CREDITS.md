@@ -10,11 +10,11 @@ All images are authentic photographs sourced from **Wikimedia Commons** and the 
 
 * **File:** `client/public/images/hero/slide_nfst.jpg`
 * **Slide:** Slide 1 — National Fellowship for ST Students (M.Phil & Ph.D. Research)
-* **Subject:** Research scholars and professor conducting scientific research in an environmental science laboratory at Jawaharlal Nehru University (JNU), New Delhi.
-* **Source Page:** [Wikimedia Commons File:Prof Satish Chandra Garkoti with his students in his Plant Ecology Laboratory](https://commons.wikimedia.org/wiki/File:Prof_Satish_Chandra_Garkoti_with_his_students_in_his_Plant_Ecology_Laboratory,_School_of_Environmental_Sciences,_Jawaharlal_Nehru_University,_New_Delhi,_India.jpg)
-* **Direct Image URL:** https://upload.wikimedia.org/wikipedia/commons/c/c1/Prof_Satish_Chandra_Garkoti_with_his_students_in_his_Plant_Ecology_Laboratory%2C_School_of_Environmental_Sciences%2C_Jawaharlal_Nehru_University%2C_New_Delhi%2C_India.jpg
-* **Author:** Ambujmishra89 / Wikimedia Commons
-* **License:** Creative Commons Attribution-ShareAlike 4.0 International ([CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/))
+* **Subject:** Scheduled Tribe higher education student engaged in research and digital documentation on a laptop at Kalinga Institute of Social Sciences (KISS), Bhubaneswar.
+* **Source Page:** [Wikimedia Commons File:Student editing Odia Wikipedia at Kalinga Institute of Social Sciences 10-01-2014.JPG](https://commons.wikimedia.org/wiki/File:Student_editing_Odia_Wikipedia_at_Kalinga_Institute_of_Social_Sciences_10-01-2014.JPG)
+* **Direct Image URL:** https://upload.wikimedia.org/wikipedia/commons/e/ec/Student_editing_Odia_Wikipedia_at_Kalinga_Institute_of_Social_Sciences_10-01-2014.JPG
+* **Author:** Subhashish Panigrahi / Wikimedia Commons
+* **License:** Creative Commons Attribution-ShareAlike 3.0 Unported ([CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/))
 
 ---
 
@@ -22,11 +22,11 @@ All images are authentic photographs sourced from **Wikimedia Commons** and the 
 
 * **File:** `client/public/images/hero/slide_nos.jpg`
 * **Slide:** Slide 2 — National Overseas Scholarship for ST Students (Global Higher Studies)
-* **Subject:** Student scholar receiving an academic medal and degree at an institutional university convocation ceremony.
-* **Source Page:** [Wikimedia Commons File:The President, Shri Ram Nath Kovind presenting the medal to a student](https://commons.wikimedia.org/wiki/File:The_President,_Shri_Ram_Nath_Kovind_presenting_the_medal_to_a_student,_at_the_7th_Convocation_of_the_Indian_Institute_of_Technology_(IIT)_Hyderabad,_at_Sangareddy_District,_in_Telangana_on_August_05,_2018.JPG)
-* **Direct Image URL:** https://upload.wikimedia.org/wikipedia/commons/a/a7/The_President%2C_Shri_Ram_Nath_Kovind_presenting_the_medal_to_a_student%2C_at_the_7th_Convocation_of_the_Indian_Institute_of_Technology_%28IIT%29_Hyderabad%2C_at_Sangareddy_District%2C_in_Telangana_on_August_05%2C_2018.JPG
-* **Author:** President's Secretariat / Press Information Bureau (PIB), Government of India
-* **License:** Government Open Data License - India ([GODL-India](https://data.gov.in/sites/default/files/Gazette_Notification_OGDL.pdf))
+* **Subject:** University graduates in convocation attire tossing academic mortarboard caps into the air at a higher education graduation ceremony.
+* **Source Page:** [Wikimedia Commons File:Square academic cap (graduation hats).JPG](https://commons.wikimedia.org/wiki/File:Square_academic_cap_(graduation_hats).JPG)
+* **Direct Image URL:** https://upload.wikimedia.org/wikipedia/commons/1/1b/Square_academic_cap_%28graduation_hats%29.JPG
+* **Author:** AKS.9955 / Wikimedia Commons
+* **License:** Creative Commons Attribution-ShareAlike 4.0 International ([CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/))
 
 ---
 
@@ -46,7 +46,7 @@ All images are authentic photographs sourced from **Wikimedia Commons** and the 
 
 * **File:** `client/public/images/hero/slide_matric.jpg`
 * **Slide:** Slide 4 — Pre-Matric & Post-Matric ST Scholarships (Direct Benefit Transfer)
-* **Subject:** Tribal school students from Nandurbar, Dhule, and Jalgaon districts of Maharashtra participating in an educational reading event with notebooks and badges.
+* **Subject:** Tribal school students from Nandurbar, Dhule, and Jalgaon districts of Maharashtra participating in an educational reading event with notebooks, pens, and participant badges (re-cropped to focus strictly on seated students).
 * **Source Page:** [Wikimedia Commons File:Prakash Javadekar interacts with the students, predominantly Tribals from Nandurbar, Dhule and Jalgaon districts](https://commons.wikimedia.org/wiki/File:Prakash_Javadekar_interacts_with_the_students,_predominantly_Tribals_from_Nandurbar,_Dhule_and_Jalgaon_districts_of_Maharashtra,_they_are_among_the_top_winners_of_the_%22reading_competition%22_conducted_under_%22Read_India.jpg)
 * **Direct Image URL:** https://upload.wikimedia.org/wikipedia/commons/f/f3/Prakash_Javadekar_interacts_with_the_students%2C_predominantly_Tribals_from_Nandurbar%2C_Dhule_and_Jalgaon_districts_of_Maharashtra%2C_they_are_among_the_top_winners_of_the_%22reading_competition%22_conducted_under_%22Read_India.jpg
 * **Author:** Ministry of Education / Press Information Bureau (PIB), Government of India
@@ -63,3 +63,9 @@ All images are authentic photographs sourced from **Wikimedia Commons** and the 
 * **Direct Image URL:** https://upload.wikimedia.org/wikipedia/commons/3/38/Faculty_and_students_at_Kalinga_Institutes_of_Social_Sciences_%28KISS%29_Bhubaneswar_editing_Odia_Wikipedia.JPG
 * **Author:** Subhashish Panigrahi / Wikimedia Commons
 * **License:** Creative Commons Attribution-ShareAlike 3.0 Unported ([CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/))
+
+---
+
+## Disclaimer
+
+All images are used strictly for educational / non-commercial demonstration of a prototype scholarship portal. No endorsement by the subjects, photographers, or institutions is implied. If you are a copyright holder or subject and want an image removed, please open an issue.

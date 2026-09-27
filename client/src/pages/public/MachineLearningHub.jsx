@@ -127,6 +127,7 @@ const MachineLearningHub = () => {
           <Card className="gov-card border-0 shadow-sm p-3 border-top border-4 border-success">
             <div className="text-muted small fw-bold">MODEL 1: ELIGIBILITY CLASSIFIER</div>
             <h3 className="fw-bold text-success mb-1">99.17%</h3>
+            <div className="text-muted mb-1" style={{ fontSize: '0.75rem' }}>on synthetic test data (not real applications)</div>
             <div className="small text-muted">Random Forest (120 Estimators)</div>
           </Card>
         </Col>
@@ -134,6 +135,7 @@ const MachineLearningHub = () => {
           <Card className="gov-card border-0 shadow-sm p-3 border-top border-4 border-primary">
             <div className="text-muted small fw-bold">MODEL 2: MERIT RANK REGRESSOR</div>
             <h3 className="fw-bold text-primary mb-1">R² 0.9991</h3>
+            <div className="text-muted mb-1" style={{ fontSize: '0.75rem' }}>on synthetic test data (not real applications)</div>
             <div className="small text-muted">Gradient Boosting (150 Estimators)</div>
           </Card>
         </Col>
