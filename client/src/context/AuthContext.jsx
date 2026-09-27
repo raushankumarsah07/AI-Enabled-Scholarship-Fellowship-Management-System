@@ -30,6 +30,36 @@ export const AuthProvider = ({ children }) => {
     fetchCurrentUser();
   }, [token]);
 
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'mota_token' || e.key === 'mota_user') {
+        const currentToken = localStorage.getItem('mota_token');
+        if (!currentToken) {
+          window.location.replace('/login');
+          return;
+        }
+        try {
+          const rawUser = localStorage.getItem('mota_user');
+          const newUser = rawUser ? JSON.parse(rawUser) : null;
+          const role = newUser?.role;
+          const roleHomes = {
+            admin: '/admin/dashboard',
+            verifier: '/verifier/queue',
+            officer: '/officer/scrutiny',
+            applicant: '/applicant/dashboard'
+          };
+          const target = roleHomes[role] || '/applicant/dashboard';
+          window.location.replace(target);
+        } catch {
+          window.location.replace('/login');
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const login = async (email, password) => {
     const res = await axiosClient.post('/auth/login', { email, password });
     if (res.data.success) {

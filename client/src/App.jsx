@@ -157,7 +157,7 @@ function App() {
                 <Route
                   path="/verifier/queue"
                   element={
-                    <ProtectedRoute allowedRoles={['verifier', 'officer', 'admin']}>
+                    <ProtectedRoute allowedRoles={['verifier']}>
                       <VerifierQueue />
                     </ProtectedRoute>
                   }
@@ -165,7 +165,7 @@ function App() {
                 <Route
                   path="/verifier/review/:id"
                   element={
-                    <ProtectedRoute allowedRoles={['verifier', 'officer', 'admin']}>
+                    <ProtectedRoute allowedRoles={['verifier']}>
                       <ReviewApplication />
                     </ProtectedRoute>
                   }
@@ -173,7 +173,7 @@ function App() {
                 <Route
                   path="/verifier/flagged"
                   element={
-                    <ProtectedRoute allowedRoles={['verifier', 'officer', 'admin']}>
+                    <ProtectedRoute allowedRoles={['verifier']}>
                       <FlaggedDocuments />
                     </ProtectedRoute>
                   }
@@ -183,7 +183,7 @@ function App() {
                 <Route
                   path="/officer/scrutiny"
                   element={
-                    <ProtectedRoute allowedRoles={['officer', 'admin']}>
+                    <ProtectedRoute allowedRoles={['officer']}>
                       <OfficerScrutiny />
                     </ProtectedRoute>
                   }
@@ -199,7 +199,7 @@ function App() {
                 <Route
                   path="/officer/workflow"
                   element={
-                    <ProtectedRoute allowedRoles={['officer', 'admin']}>
+                    <ProtectedRoute allowedRoles={['officer']}>
                       <SelectionWorkflow />
                     </ProtectedRoute>
                   }

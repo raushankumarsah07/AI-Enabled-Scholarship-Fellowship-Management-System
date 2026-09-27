@@ -40,7 +40,8 @@ const Login = () => {
           fromPath.startsWith('/eligibility')
         );
 
-        navigate(isAllowedPath ? fromPath : defaultPath, { replace: true });
+        const targetPath = isAllowedPath ? fromPath : defaultPath;
+        window.location.replace(targetPath);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid email or password entered.');
