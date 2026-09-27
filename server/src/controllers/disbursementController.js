@@ -25,6 +25,43 @@ export const getMyDisbursements = async (req, res, next) => {
   }
 };
 
+// Who recommended this application for the merit list (the officer who may NOT release its payments)
+const getRecommender = async (applicationId) => {
+  const log = await AuditLog.findOne({ action: 'RECOMMEND_FOR_MERIT', entityId: String(applicationId) })
+    .sort({ createdAt: -1 })
+    .lean();
+  return log ? { id: String(log.actorId), name: log.actorName } : null;
+};
+
+// Officers and admins: every installment, with who recommended the student
+export const getAllDisbursements = async (req, res, next) => {
+  try {
+    const disbursements = await Disbursement.find({})
+      .populate({
+        path: 'applicationId',
+        select: 'applicationNo status applicantId schemeId',
+        populate: [
+          { path: 'applicantId', select: 'name' },
+          { path: 'schemeId', select: 'name code' }
+        ]
+      })
+      .sort({ status: 1, dueDate: 1 })
+      .lean();
+
+    const cache = {};
+    for (const d of disbursements) {
+      const appId = d.applicationId?._id;
+      if (!appId) continue;
+      if (!(appId in cache)) cache[appId] = await getRecommender(appId);
+      d.recommendedBy = cache[appId];
+    }
+
+    res.json({ success: true, count: disbursements.length, disbursements });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const uploadProgressReport = async (req, res, next) => {
   try {
     const { id } = req.params; // disbursementId
@@ -40,6 +77,15 @@ export const uploadProgressReport = async (req, res, next) => {
 
     if (!disbursement) {
       return res.status(404).json({ success: false, message: 'Disbursement milestone not found.' });
+    }
+
+    // Students can only upload reports for their own fellowship
+    const ownerId = String(disbursement.applicationId?.applicantId || '');
+    if (req.user.role === 'applicant' && ownerId !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: 'You can only upload reports for your own fellowship.' });
+    }
+    if (disbursement.status === 'released') {
+      return res.status(400).json({ success: false, message: 'This installment has already been released.' });
     }
 
     disbursement.progressReportPath = req.file.path;
@@ -70,6 +116,39 @@ export const releaseDisbursement = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Disbursement not found.' });
     }
 
+    const app = disbursement.applicationId;
+    const n = disbursement.installmentNo;
+
+    if (disbursement.status === 'released') {
+      return res.status(400).json({ success: false, message: `Installment #${n} was already released.` });
+    }
+    if (!app || !['SELECTED', 'DISBURSING'].includes(app.status)) {
+      return res.status(400).json({ success: false, message: 'Only selected applicants can receive fellowship payments.' });
+    }
+
+    // Two-person rule: the officer who recommended the student cannot also release the money
+    const recommender = await getRecommender(app._id);
+    if (recommender && recommender.id === String(req.user._id)) {
+      return res.status(403).json({
+        success: false,
+        message: 'You recommended this application. Another officer must release the payment.'
+      });
+    }
+
+    // Installment 2 onwards: previous one paid, and the guide-certified progress report uploaded
+    if (n > 1) {
+      const prev = await Disbursement.findOne({ applicationId: app._id, installmentNo: n - 1 });
+      if (prev && prev.status !== 'released') {
+        return res.status(400).json({ success: false, message: `Release installment #${n - 1} first.` });
+      }
+      if (!disbursement.progressReportPath) {
+        return res.status(400).json({
+          success: false,
+          message: "Waiting for the student's progress report, certified by the research guide."
+        });
+      }
+    }
+
     const txn = transactionId || `PFMS${Date.now()}${Math.floor(1000 + Math.random() * 9000)}`;
 
     disbursement.status = 'released';
@@ -78,13 +157,26 @@ export const releaseDisbursement = async (req, res, next) => {
     disbursement.remarks = remarks;
     await disbursement.save();
 
-    const app = disbursement.applicationId;
-    if (app && app.status !== 'DISBURSING') {
+    // Schedule the next half-yearly installment (up to 10 = 5 years); it needs a progress report
+    const nextExists = await Disbursement.findOne({ applicationId: app._id, installmentNo: n + 1 });
+    if (!nextExists && n < 10) {
+      const nextDue = new Date(disbursement.dueDate || Date.now());
+      nextDue.setMonth(nextDue.getMonth() + 6);
+      await Disbursement.create({
+        applicationId: app._id,
+        installmentNo: n + 1,
+        amount: disbursement.amount,
+        dueDate: nextDue,
+        status: 'pending'
+      });
+    }
+
+    if (app.status !== 'DISBURSING') {
       app.status = 'DISBURSING';
       app.stageHistory.push({
         stage: 'DISBURSING',
         by: req.user.name,
-        remark: `Installment #${disbursement.installmentNo} released. Ref: ${txn}`
+        remark: `Installment #${n} released. Ref: ${txn}`
       });
       await app.save();
     }

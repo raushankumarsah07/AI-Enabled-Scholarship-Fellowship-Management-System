@@ -147,7 +147,7 @@ const seedDatabase = async () => {
     const passwordHashApplicant = await bcrypt.hash('Applicant@123', 10);
 
     const admin = await User.create({
-      name: 'Dr. Arjun Munda (Ministry Director)',
+      name: 'System Administrator',
       email: 'admin@mota.gov.in',
       phone: '9876543210',
       passwordHash: passwordHashAdmin,

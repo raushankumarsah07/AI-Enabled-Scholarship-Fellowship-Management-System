@@ -1,5 +1,6 @@
 import express from 'express';
 import { getScrutinyList, makeEligibilityDecision, recommendForMerit } from '../controllers/officerController.js';
+import { publishMeritList } from '../controllers/adminController.js';
 import { protect } from '../middleware/auth.js';
 import { requireRole } from '../middleware/roles.js';
 
@@ -11,5 +12,7 @@ router.use(requireRole('officer', 'admin'));
 router.get('/scrutiny', getScrutinyList);
 router.post('/applications/:id/eligibility-decision', makeEligibilityDecision);
 router.post('/applications/:id/recommend', recommendForMerit);
+// Publishing the merit list is an officer decision (admins can only view it)
+router.post('/merit/:schemeId/publish', requireRole('officer'), publishMeritList);
 
 export default router;

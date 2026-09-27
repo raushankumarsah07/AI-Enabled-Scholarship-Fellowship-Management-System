@@ -20,14 +20,26 @@ export const getMeritList = async (req, res, next) => {
 export const publishMeritList = async (req, res, next) => {
   try {
     const { schemeId } = req.params;
-    const meritData = await generateSchemeMeritList(schemeId);
+    const { remarks = '' } = req.body || {};
+    if (!remarks.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'A remark is required to publish the merit list (for example, the selection committee approval reference).'
+      });
+    }
+
+    // Only applications an officer has recommended (MERIT_LISTED) can be selected
+    const meritData = await generateSchemeMeritList(schemeId, { recommendedOnly: true });
 
     const { provisionalList, waitingList, scheme } = meritData;
+    if (provisionalList.length === 0 && waitingList.length === 0) {
+      return res.status(400).json({ success: false, message: 'No recommended applications to publish for this scheme yet.' });
+    }
 
     // Update Provisional Selected Candidates
     for (const item of provisionalList) {
       const app = await Application.findById(item.application._id);
-      if (app) {
+      if (app && app.status !== 'SELECTED') {
         app.status = 'SELECTED';
         app.isSelected = true;
         app.isWaitlisted = false;
@@ -37,7 +49,7 @@ export const publishMeritList = async (req, res, next) => {
         app.stageHistory.push({
           stage: 'SELECTED',
           by: req.user.name,
-          remark: `Provisional Selection published. Merit Rank #${item.meritRank} under ${item.selectionCategory}.`
+          remark: `Provisional Selection published. Merit Rank #${item.meritRank} under ${item.selectionCategory}. ${remarks}`
         });
         await app.save();
 
@@ -71,7 +83,7 @@ export const publishMeritList = async (req, res, next) => {
     // Update Waitlisted Candidates
     for (const item of waitingList) {
       const app = await Application.findById(item.application._id);
-      if (app) {
+      if (app && app.status !== 'WAITLISTED') {
         app.status = 'WAITLISTED';
         app.isSelected = false;
         app.isWaitlisted = true;
@@ -108,7 +120,7 @@ export const publishMeritList = async (req, res, next) => {
         selectedCount: provisionalList.length,
         waitlistedCount: waitingList.length
       },
-      reason: `Published official merit list for scheme ${scheme.code}`,
+      reason: `Published merit list for ${scheme.code}: ${remarks}`,
       ip: req.ip || '127.0.0.1'
     });
 
@@ -132,6 +144,15 @@ export const overrideApplicationStatus = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'Both newStatus and a mandatory written reason are required for administrative overrides.'
+      });
+    }
+
+    // Admins run the system; they cannot select applicants or move them into payment stages
+    const OFFICER_ONLY_STATUSES = ['SELECTED', 'AWARD_ACCEPTED', 'DISBURSING', 'COMPLETED'];
+    if (OFFICER_ONLY_STATUSES.includes(newStatus)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Admins cannot select applicants or release payments. An officer publishes the merit list and a second officer releases payments.'
       });
     }
 

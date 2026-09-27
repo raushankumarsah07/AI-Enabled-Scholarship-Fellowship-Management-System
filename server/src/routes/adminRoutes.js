@@ -1,7 +1,6 @@
 import express from 'express';
 import {
   getMeritList,
-  publishMeritList,
   overrideApplicationStatus,
   getAnomalies,
   getAuditLogs,
@@ -16,7 +15,6 @@ const router = express.Router();
 router.use(protect);
 router.get('/merit/:schemeId', requireRole('admin', 'officer'), getMeritList);
 router.use(requireRole('admin'));
-router.post('/merit/:schemeId/publish', publishMeritList);
 router.post('/applications/:id/override', overrideApplicationStatus);
 router.get('/anomalies', getAnomalies);
 router.get('/audit', getAuditLogs);

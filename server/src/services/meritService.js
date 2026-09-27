@@ -75,14 +75,18 @@ export const calculateApplicationMeritScore = (application, scheme) => {
 /**
  * Generate full provisional and waiting merit lists for a scheme with horizontal reservation quotas.
  */
-export const generateSchemeMeritList = async (schemeId) => {
+export const generateSchemeMeritList = async (schemeId, { recommendedOnly = false } = {}) => {
   const scheme = await Scheme.findById(schemeId);
   if (!scheme) throw new Error('Scheme not found');
 
-  // Fetch all eligible applications for this scheme
+  // Preview shows everyone still in the running; publishing uses only officer-recommended applications
+  const statuses = recommendedOnly
+    ? ['MERIT_LISTED', 'SELECTED', 'WAITLISTED']
+    : ['ELIGIBLE', 'UNDER_SCRUTINY', 'MERIT_LISTED', 'SELECTED', 'WAITLISTED'];
+
   const eligibleApps = await Application.find({
     schemeId,
-    status: { $in: ['ELIGIBLE', 'UNDER_SCRUTINY', 'MERIT_LISTED', 'SELECTED', 'WAITLISTED'] }
+    status: { $in: statuses }
   }).populate('applicantId');
 
   if (eligibleApps.length === 0) {
