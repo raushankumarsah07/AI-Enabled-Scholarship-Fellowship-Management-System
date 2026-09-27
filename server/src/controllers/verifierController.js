@@ -132,27 +132,120 @@ export const documentDecision = async (req, res, next) => {
       }
     });
 
-    // Check application overall documents status
+    // Check application overall documents status and automatically advance to UNDER_SCRUTINY
     const allDocs = await Document.find({ applicationId: doc.applicationId._id });
     const allApproved = allDocs.length > 0 && allDocs.every(d => ['approved', 'auto_ok'].includes(d.verificationStatus));
     const anyRejected = allDocs.some(d => d.verificationStatus === 'rejected');
 
-    const app = doc.applicationId;
-    if (allApproved && ['UNDER_VERIFICATION', 'AUTO_VERIFIED', 'OCR_PROCESSING'].includes(app.status)) {
+    const app = await Application.findById(doc.applicationId._id).populate('applicantId').populate('schemeId');
+    if (app && allApproved && !['ELIGIBLE', 'INELIGIBLE', 'MERIT_LISTED', 'SELECTED', 'REJECTED'].includes(app.status)) {
+      const prevStatus = app.status;
       app.status = 'UNDER_SCRUTINY';
       app.stageHistory.push({
         stage: 'UNDER_SCRUTINY',
         by: req.user.name,
-        remark: 'All uploaded documents verified and approved. Moved to Officer Scrutiny.'
+        remark: `Document "${doc.docKey}" verified. All documents approved — Application automatically forwarded to Officer Scrutiny.`
       });
       await app.save();
+
+      // Log Audit Trail
+      await AuditLog.create({
+        actorId: req.user._id,
+        actorName: req.user.name,
+        actorRole: req.user.role,
+        action: 'APPLICATION_FORWARDED_TO_OFFICER',
+        entityType: 'Application',
+        entityId: app._id,
+        before: { status: prevStatus },
+        after: { status: 'UNDER_SCRUTINY' },
+        reason: 'All uploaded documents verified and approved by Verifier.',
+        ip: req.ip || '127.0.0.1'
+      });
+
+      // Send Notification to applicant
+      if (app.applicantId?._id) {
+        await sendNotification({
+          userId: app.applicantId._id,
+          type: 'APPLICATION_UNDER_SCRUTINY',
+          subject: `Document Verification Complete: Application ${app.applicationNo}`,
+          body: `All documents for your application #${app.applicationNo} have been verified and approved. Your application has been moved to the Ministry Officer Scrutiny panel.`,
+          link: `/applicant/applications/${app._id}`
+        });
+      }
     }
 
     res.json({
       success: true,
       message: `Document marked as ${decision}.`,
       document: doc,
-      applicationStatus: app.status
+      applicationStatus: app ? app.status : 'UNDER_VERIFICATION'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const forwardApplicationToOfficer = async (req, res, next) => {
+  try {
+    const { id } = req.params; // applicationId
+    const { remarks = 'All documents verified and approved. Forwarded to Officer Scrutiny.' } = req.body;
+
+    const app = await Application.findById(id).populate('applicantId').populate('schemeId');
+    if (!app) {
+      return res.status(404).json({ success: false, message: 'Application not found.' });
+    }
+
+    // Mark any pending/needs_review documents for this application as approved
+    await Document.updateMany(
+      { applicationId: id, verificationStatus: { $ne: 'rejected' } },
+      {
+        $set: {
+          verificationStatus: 'approved',
+          verifiedBy: req.user._id,
+          verifiedAt: new Date(),
+          officerRemark: 'Approved during application verification.'
+        }
+      }
+    );
+
+    const prevStatus = app.status;
+    app.status = 'UNDER_SCRUTINY';
+    app.stageHistory.push({
+      stage: 'UNDER_SCRUTINY',
+      by: req.user.name,
+      remark: remarks
+    });
+    await app.save();
+
+    // Audit Log
+    await AuditLog.create({
+      actorId: req.user._id,
+      actorName: req.user.name,
+      actorRole: req.user.role,
+      action: 'VERIFIER_FORWARDED_TO_OFFICER',
+      entityType: 'Application',
+      entityId: id,
+      before: { status: prevStatus },
+      after: { status: 'UNDER_SCRUTINY' },
+      reason: remarks,
+      ip: req.ip || '127.0.0.1'
+    });
+
+    // Send Notification to applicant
+    if (app.applicantId?._id) {
+      await sendNotification({
+        userId: app.applicantId._id,
+        type: 'APPLICATION_UNDER_SCRUTINY',
+        subject: `Documents Verified: Application ${app.applicationNo}`,
+        body: `Your application #${app.applicationNo} has been verified by the verification team and forwarded to the Ministry Scrutiny Officer.`,
+        link: `/applicant/applications/${app._id}`
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Application verified and successfully forwarded to Ministry Officer Scrutiny.',
+      application: app
     });
   } catch (error) {
     next(error);

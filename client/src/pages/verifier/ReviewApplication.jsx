@@ -5,7 +5,7 @@ import axiosClient from '../../api/axiosClient';
 import Sidebar from '../../components/Sidebar';
 import StatusBadge from '../../components/StatusBadge';
 import OcrResultCard from '../../components/OcrResultCard';
-import { ShieldCheck, ArrowLeft, CheckCircle2, XCircle, AlertTriangle, FileText, Cpu, History, ArrowUpDown, Filter, Search } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, CheckCircle2, XCircle, AlertTriangle, FileText, Cpu, History, ArrowUpDown, Filter, Search, Send, CheckCheck } from 'lucide-react';
 
 const ReviewApplication = () => {
   const { id } = useParams();
@@ -61,11 +61,36 @@ const ReviewApplication = () => {
       });
 
       if (res.data.success) {
-        setSuccessMsg(`Document marked as ${decision}.`);
+        if (res.data.applicationStatus === 'UNDER_SCRUTINY') {
+          setSuccessMsg(`✓ Document marked as ${decision}. All documents are now verified — Application has been automatically forwarded to Ministry Officer Scrutiny!`);
+        } else {
+          setSuccessMsg(`Document marked as ${decision}.`);
+        }
         fetchDetails();
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Failed to update document decision.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleForwardToOfficer = async () => {
+    setActionLoading(true);
+    setSuccessMsg(null);
+    setErrorMsg(null);
+
+    try {
+      const res = await axiosClient.post(`/verifier/applications/${id}/forward-to-officer`, {
+        remarks: 'All documents verified and approved by Verifier. Forwarded to Officer Scrutiny.'
+      });
+
+      if (res.data.success) {
+        setSuccessMsg('✓ Application verified and successfully forwarded to Ministry Officer Scrutiny Panel!');
+        fetchDetails();
+      }
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Failed to forward application to officer.');
     } finally {
       setActionLoading(false);
     }
@@ -107,6 +132,10 @@ const ReviewApplication = () => {
   const { application, documents = [], deficiencies = [] } = data || {};
   const applicant = application?.applicantId;
   const scheme = application?.schemeId;
+
+  const approvedDocsCount = documents.filter(d => ['approved', 'auto_ok'].includes(d.verificationStatus)).length;
+  const isAllApproved = documents.length > 0 && approvedDocsCount === documents.length;
+  const isUnderScrutinyOrBeyond = ['UNDER_SCRUTINY', 'ELIGIBLE', 'INELIGIBLE', 'MERIT_LISTED', 'SELECTED', 'AWARD_ACCEPTED', 'DISBURSING', 'COMPLETED'].includes(application?.status);
 
   // Process Filtered & Sorted Documents
   let processedDocs = [...documents];
@@ -152,8 +181,8 @@ const ReviewApplication = () => {
             </Link>
           </div>
 
-          {successMsg && <Alert variant="success" className="py-2 small">{successMsg}</Alert>}
-          {errorMsg && <Alert variant="danger" className="py-2 small">{errorMsg}</Alert>}
+          {successMsg && <Alert variant="success" className="py-2.5 small fw-semibold shadow-sm">{successMsg}</Alert>}
+          {errorMsg && <Alert variant="danger" className="py-2.5 small fw-semibold shadow-sm">{errorMsg}</Alert>}
 
           {/* Applicant & Scheme Header */}
           <Card className="gov-card p-4 mb-4 border">
@@ -171,7 +200,7 @@ const ReviewApplication = () => {
             </div>
 
             {/* Profile Baseline vs Declared Grid */}
-            <div className="bg-light p-3 rounded small">
+            <div className="bg-light p-3 rounded small mb-3">
               <Row className="gy-2">
                 <Col md={3} xs={6}>
                   <span className="text-muted d-block">Social Category:</span>
@@ -190,6 +219,43 @@ const ReviewApplication = () => {
                   <strong className="text-dark">{applicant?.profile?.aadhaarLast4 || 'N/A'}</strong>
                 </Col>
               </Row>
+            </div>
+
+            {/* Verifier Forwarding Action Banner */}
+            <div className={`p-3 rounded border d-flex justify-content-between align-items-center flex-wrap gap-3 ${isUnderScrutinyOrBeyond ? 'bg-success bg-opacity-10 border-success' : 'bg-primary bg-opacity-10 border-primary'}`}>
+              <div className="d-flex align-items-center gap-2">
+                {isUnderScrutinyOrBeyond ? (
+                  <CheckCircle2 size={24} className="text-success flex-shrink-0" />
+                ) : (
+                  <ShieldCheck size={24} className="text-primary flex-shrink-0" />
+                )}
+                <div>
+                  <div className="fw-bold text-dark">
+                    {isUnderScrutinyOrBeyond
+                      ? '✓ Verification Complete — Forwarded to Scrutiny Officer'
+                      : `Document Verification: ${approvedDocsCount} of ${documents.length} Files Approved`}
+                  </div>
+                  <div className="small text-muted">
+                    {isUnderScrutinyOrBeyond
+                      ? 'This application has successfully transitioned to Ministry Officer Scrutiny for final eligibility determination.'
+                      : 'You can verify individual files below or click "Approve All & Forward" to send directly to the Officer.'}
+                  </div>
+                </div>
+              </div>
+
+              {!isUnderScrutinyOrBeyond && (
+                <div className="d-flex gap-2">
+                  <Button
+                    variant="success"
+                    size="sm"
+                    className="fw-bold d-inline-flex align-items-center gap-1.5 px-3 py-2 shadow-sm"
+                    onClick={handleForwardToOfficer}
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? <Spinner size="sm" animation="border" /> : <><CheckCheck size={16} /> Approve All &amp; Forward to Officer</>}
+                  </Button>
+                </div>
+              )}
             </div>
           </Card>
 
