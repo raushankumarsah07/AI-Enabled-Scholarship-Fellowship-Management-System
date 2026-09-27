@@ -5,6 +5,9 @@ import VerificationLog from '../models/VerificationLog.js';
 import AuditLog from '../models/AuditLog.js';
 import { sendNotification } from '../services/notificationService.js';
 
+// Stages from which an application may move to Officer Scrutiny
+const FORWARDABLE_STATUSES = ['SUBMITTED', 'OCR_PROCESSING', 'AUTO_VERIFIED', 'UNDER_VERIFICATION', 'DEFICIENT'];
+
 export const getVerifierQueue = async (req, res, next) => {
   try {
     const { schemeId, status, flagged, state, search } = req.query;
@@ -132,13 +135,21 @@ export const documentDecision = async (req, res, next) => {
       }
     });
 
+    // A human approved this document, so any open deficiency on it is settled
+    if (decision === 'approved') {
+      await Deficiency.updateMany(
+        { applicationId: doc.applicationId._id, docKey: doc.docKey, status: 'open' },
+        { $set: { status: 'resolved', resolvedAt: new Date() } }
+      );
+    }
+
     // Check application overall documents status and automatically advance to UNDER_SCRUTINY
     const allDocs = await Document.find({ applicationId: doc.applicationId._id });
     const allApproved = allDocs.length > 0 && allDocs.every(d => ['approved', 'auto_ok'].includes(d.verificationStatus));
-    const anyRejected = allDocs.some(d => d.verificationStatus === 'rejected');
+    const openDeficiencies = await Deficiency.countDocuments({ applicationId: doc.applicationId._id, status: 'open' });
 
     const app = await Application.findById(doc.applicationId._id).populate('applicantId').populate('schemeId');
-    if (app && allApproved && !['ELIGIBLE', 'INELIGIBLE', 'MERIT_LISTED', 'SELECTED', 'REJECTED'].includes(app.status)) {
+    if (app && allApproved && openDeficiencies === 0 && FORWARDABLE_STATUSES.includes(app.status)) {
       const prevStatus = app.status;
       app.status = 'UNDER_SCRUTINY';
       app.stageHistory.push({
@@ -195,9 +206,46 @@ export const forwardApplicationToOfficer = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Application not found.' });
     }
 
-    // Mark any pending/needs_review documents for this application as approved
+    const allDocs = await Document.find({ applicationId: id });
+
+    if (!FORWARDABLE_STATUSES.includes(app.status)) {
+      return res.status(400).json({ success: false, message: `This application is already at stage ${app.status}.` });
+    }
+
+    if (!allDocs || allDocs.length === 0) {
+      return res.status(400).json({ success: false, message: 'No documents have been uploaded yet.' });
+    }
+
+    const rejectedDocs = allDocs.filter(d => d.verificationStatus === 'rejected');
+    if (rejectedDocs.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot forward: ${rejectedDocs.map(d => d.docKey).join(', ')} is rejected. Wait for the applicant to re-upload.`
+      });
+    }
+
+    const openDefs = await Deficiency.find({ applicationId: id, status: 'open' });
+    if (openDefs.length > 0) {
+      const uniqueKeys = [...new Set(openDefs.map(d => d.docKey))].join(', ');
+      return res.status(400).json({
+        success: false,
+        message: `Cannot forward: open deficiency on ${uniqueKeys}. Approve that document or wait for the applicant.`
+      });
+    }
+
+    const unapprovedFlagged = allDocs.filter(d => d.verificationStatus !== 'approved' && d.mismatches && d.mismatches.length > 0);
+    if (unapprovedFlagged.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Review flagged documents one by one first: ${unapprovedFlagged.map(d => d.docKey).join(', ')}.`
+      });
+    }
+
+    const docsToApprove = allDocs.filter(d => ['needs_review', 'auto_ok'].includes(d.verificationStatus));
+    const bulkApproved = docsToApprove.map(d => d.docKey);
+
     await Document.updateMany(
-      { applicationId: id, verificationStatus: { $ne: 'rejected' } },
+      { applicationId: id, verificationStatus: { $in: ['needs_review', 'auto_ok'] } },
       {
         $set: {
           verificationStatus: 'approved',
@@ -226,7 +274,7 @@ export const forwardApplicationToOfficer = async (req, res, next) => {
       entityType: 'Application',
       entityId: id,
       before: { status: prevStatus },
-      after: { status: 'UNDER_SCRUTINY' },
+      after: { status: 'UNDER_SCRUTINY', bulkApprovedDocs: bulkApproved },
       reason: remarks,
       ip: req.ip || '127.0.0.1'
     });

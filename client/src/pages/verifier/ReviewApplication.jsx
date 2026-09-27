@@ -137,6 +137,17 @@ const ReviewApplication = () => {
   const isAllApproved = documents.length > 0 && approvedDocsCount === documents.length;
   const isUnderScrutinyOrBeyond = ['UNDER_SCRUTINY', 'ELIGIBLE', 'INELIGIBLE', 'MERIT_LISTED', 'SELECTED', 'AWARD_ACCEPTED', 'DISBURSING', 'COMPLETED'].includes(application?.status);
 
+  const forwardBlockReason = (() => {
+    if (!documents || documents.length === 0) return 'No documents uploaded yet.';
+    const rejected = documents.filter(d => d.verificationStatus === 'rejected');
+    if (rejected.length > 0) return `${rejected.map(d => d.docKey).join(', ')} rejected. Waiting for the applicant to re-upload.`;
+    const openDefs = (deficiencies || []).filter(d => d.status === 'open');
+    if (openDefs.length > 0) return `Open deficiency on ${[...new Set(openDefs.map(d => d.docKey))].join(', ')}. Approve that document or wait for the applicant.`;
+    const unapprovedFlagged = documents.filter(d => d.verificationStatus !== 'approved' && d.mismatches && d.mismatches.length > 0);
+    if (unapprovedFlagged.length > 0) return `Review flagged documents one by one first: ${unapprovedFlagged.map(d => d.docKey).join(', ')}.`;
+    return null;
+  })();
+
   // Process Filtered & Sorted Documents
   let processedDocs = [...documents];
 
@@ -238,7 +249,7 @@ const ReviewApplication = () => {
                   <div className="small text-muted">
                     {isUnderScrutinyOrBeyond
                       ? 'This application has successfully transitioned to Ministry Officer Scrutiny for final eligibility determination.'
-                      : 'You can verify individual files below or click "Approve All & Forward" to send directly to the Officer.'}
+                      : (forwardBlockReason ? `⚠ ${forwardBlockReason}` : 'No flags found. You can approve the remaining clean files and forward to the Officer in one click.')}
                   </div>
                 </div>
               </div>
@@ -250,9 +261,10 @@ const ReviewApplication = () => {
                     size="sm"
                     className="fw-bold d-inline-flex align-items-center gap-1.5 px-3 py-2 shadow-sm"
                     onClick={handleForwardToOfficer}
-                    disabled={actionLoading}
+                    disabled={actionLoading || !!forwardBlockReason}
+                    title={forwardBlockReason || ''}
                   >
-                    {actionLoading ? <Spinner size="sm" animation="border" /> : <><CheckCheck size={16} /> Approve All &amp; Forward to Officer</>}
+                    {actionLoading ? <Spinner size="sm" animation="border" /> : <><CheckCheck size={16} /> Approve Clean Files &amp; Forward to Officer</>}
                   </Button>
                 </div>
               )}
