@@ -40,6 +40,8 @@ const Home = () => {
       ],
       preCheckCode: 'ARG45',
       image: '/images/hero/slide_nfst.jpg',
+      alt: 'Research scholars and faculty in a scientific research laboratory at Jawaharlal Nehru University',
+      credit: 'Photo: Ambujmishra89 / Wikimedia Commons, CC BY-SA 4.0',
       floatingBadges: [
         { position: 'top-left', text: '🎓 750 Annual Fellowships', color: '#10b981' },
         { position: 'bottom-right', text: '🔬 Indian Universities & IITs', color: '#38bdf8' }
@@ -61,6 +63,8 @@ const Home = () => {
       ],
       preCheckCode: 'AZKMI',
       image: '/images/hero/slide_nos.jpg',
+      alt: 'Scholar in convocation attire receiving an academic medal at an institutional university convocation',
+      credit: "Photo: President's Secretariat / PIB, GODL-India",
       floatingBadges: [
         { position: 'top-left', text: '✈️ Oxford, MIT & Harvard', color: '#f59e0b' },
         { position: 'bottom-right', text: '🌍 20 Overseas Slots (17 ST + 3 PVTG)', color: '#38bdf8' }
@@ -82,6 +86,8 @@ const Home = () => {
       ],
       preCheckCode: 'A023B',
       image: '/images/hero/slide_topclass.jpg',
+      alt: 'Students studying with books and laptops in the library reading hall at IIT (BHU) Varanasi',
+      credit: 'Photo: Deepak Singhanwal / Wikimedia Commons, CC BY-SA 4.0',
       floatingBadges: [
         { position: 'top-left', text: '💻 ₹45,000 Hardware Grant', color: '#6366f1' },
         { position: 'bottom-right', text: '🏛️ IIT, IIM, AIIMS, NIT', color: '#10b981' }
@@ -103,6 +109,8 @@ const Home = () => {
       ],
       preCheckCode: 'BVOBC',
       image: '/images/hero/slide_matric.jpg',
+      alt: 'Tribal school students with notebooks and badges participating in an educational reading event',
+      credit: 'Photo: Ministry of Education / PIB, GODL-India',
       floatingBadges: [
         { position: 'top-left', text: '📱 100% Cash DBT to Bank', color: '#10b981' },
         { position: 'bottom-right', text: '👨‍👩‍👧 Class 9 to 12 & Degree', color: '#eab308' }
@@ -124,6 +132,8 @@ const Home = () => {
       ],
       preCheckCode: 'ARG45',
       image: '/images/hero/slide_ai_model.jpg',
+      alt: 'Tribal students and faculty working on computer workstations during a digital workshop at KISS Bhubaneswar',
+      credit: 'Photo: Subhashish Panigrahi / Wikimedia Commons, CC BY-SA 3.0',
       floatingBadges: [
         { position: 'top-left', text: '🧠 AI flags, humans decide', color: '#a855f7' },
         { position: 'bottom-right', text: '📝 Every decision has a reason', color: '#10b981' }
@@ -281,7 +291,7 @@ const Home = () => {
                 <div className="hero-3d-image-card">
                   <img
                     src={activeSlide.image}
-                    alt={activeSlide.title}
+                    alt={activeSlide.alt || activeSlide.title}
                     loading="eager"
                   />
                   {/* Subtle Gradient Overlay */}
@@ -293,6 +303,31 @@ const Home = () => {
                       pointerEvents: 'none'
                     }}
                   />
+                  {/* Photo Credit Overlay */}
+                  {activeSlide.credit && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: '10px',
+                        left: '12px',
+                        fontSize: '0.68rem',
+                        color: 'rgba(255, 255, 255, 0.85)',
+                        background: 'rgba(15, 23, 42, 0.65)',
+                        backdropFilter: 'blur(4px)',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        pointerEvents: 'none',
+                        maxWidth: '92%',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        zIndex: 2,
+                        letterSpacing: '0.01em'
+                      }}
+                    >
+                      {activeSlide.credit}
+                    </div>
+                  )}
                 </div>
               </div>
 
