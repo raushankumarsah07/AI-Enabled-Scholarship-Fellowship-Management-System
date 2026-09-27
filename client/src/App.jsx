@@ -40,6 +40,7 @@ import FlaggedDocuments from './pages/verifier/FlaggedDocuments';
 import OfficerScrutiny from './pages/officer/OfficerScrutiny';
 import MeritList from './pages/officer/MeritList';
 import SelectionWorkflow from './pages/officer/SelectionWorkflow';
+import FellowshipPayments from './pages/officer/FellowshipPayments';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -200,6 +201,14 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={['officer', 'admin']}>
                       <SelectionWorkflow />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/officer/payments"
+                  element={
+                    <ProtectedRoute allowedRoles={['officer', 'admin']}>
+                      <FellowshipPayments />
                     </ProtectedRoute>
                   }
                 />
