@@ -18,10 +18,23 @@ export const getScrutinyList = async (req, res, next) => {
       filter.schemeId = schemeId;
     }
 
-    const applications = await Application.find(filter)
+    let applications = await Application.find(filter)
       .populate('schemeId')
       .populate('applicantId', '-passwordHash')
       .sort({ updatedAt: -1 });
+
+    // Clean up orphaned applications
+    const orphanedApps = applications.filter(a => !a.applicantId);
+    if (orphanedApps.length > 0) {
+      const orphanIds = orphanedApps.map(a => a._id);
+      setImmediate(async () => {
+        try {
+          await Document.deleteMany({ applicationId: { $in: orphanIds } });
+          await Application.deleteMany({ _id: { $in: orphanIds } });
+        } catch {}
+      });
+      applications = applications.filter(a => a.applicantId);
+    }
 
     const appIds = applications.map(a => a._id);
     const documents = await Document.find({ applicationId: { $in: appIds } });

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Badge, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Badge, Spinner, Modal, Alert } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import axiosClient from '../../api/axiosClient';
 import Sidebar from '../../components/Sidebar';
 import DataTable from '../../components/DataTable';
 import StatusBadge from '../../components/StatusBadge';
 import { INDIAN_STATES, UNION_TERRITORIES, ALL_INDIAN_STATES_AND_UTS } from '../../constants/indianStates';
-import { ShieldCheck, AlertTriangle, Eye, Filter, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, Eye, Filter, CheckCircle2, Trash2, RefreshCw } from 'lucide-react';
 
 const VerifierQueue = () => {
   const [queue, setQueue] = useState([]);
@@ -18,6 +18,12 @@ const VerifierQueue = () => {
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [flaggedOnly, setFlaggedOnly] = useState(false);
   const [stateFilter, setStateFilter] = useState('');
+
+  // Deletion state
+  const [deletingApp, setDeletingApp] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [alertMsg, setAlertMsg] = useState(null);
+  const [alertType, setAlertType] = useState('success');
 
   const fetchQueue = async () => {
     setLoading(true);
@@ -48,6 +54,26 @@ const VerifierQueue = () => {
     fetchQueue();
   }, [selectedScheme, selectedStatus, flaggedOnly, stateFilter]);
 
+  const handleDeleteApplication = async () => {
+    if (!deletingApp) return;
+    setIsDeleting(true);
+
+    try {
+      const res = await axiosClient.delete(`/applications/${deletingApp._id}`);
+      if (res.data.success) {
+        setQueue(prev => prev.filter(a => a._id !== deletingApp._id));
+        setAlertType('success');
+        setAlertMsg(`Application #${deletingApp.applicationNo} and all associated documents were permanently deleted.`);
+      }
+    } catch (err) {
+      setAlertType('danger');
+      setAlertMsg(err.response?.data?.message || 'Failed to delete application.');
+    } finally {
+      setIsDeleting(false);
+      setDeletingApp(null);
+    }
+  };
+
   const getApplicantState = (row) => {
     return (
       row.applicantId?.profile?.state ||
@@ -77,15 +103,15 @@ const VerifierQueue = () => {
       accessor: (row) => row.applicantId?.name || 'N/A',
       render: (row) => (
         <div>
-          <div className="fw-bold">{row.applicantId?.name}</div>
-          <div className="small text-muted">{row.applicantId?.email}</div>
+          <div className="fw-bold">{row.applicantId?.name || <span className="text-muted fst-italic">Unknown / Deleted</span>}</div>
+          <div className="small text-muted">{row.applicantId?.email || ''}</div>
         </div>
       )
     },
     {
       label: 'Scheme',
       accessor: (row) => row.schemeId?.name || 'N/A',
-      render: (row) => <span className="badge bg-light text-dark border">{row.schemeId?.code}</span>
+      render: (row) => <span className="badge bg-light text-dark border">{row.schemeId?.code || 'SCHEME'}</span>
     },
     {
       label: 'State',
@@ -116,9 +142,20 @@ const VerifierQueue = () => {
       label: 'Action',
       sortable: false,
       render: (row) => (
-        <Link to={`/verifier/review/${row._id}`} className="btn btn-gov-primary btn-sm fw-semibold d-inline-flex align-items-center gap-1">
-          <Eye size={14} /> Scrutinize
-        </Link>
+        <div className="d-flex align-items-center gap-1.5 flex-wrap">
+          <Link to={`/verifier/review/${row._id}`} className="btn btn-gov-primary btn-sm fw-semibold d-inline-flex align-items-center gap-1">
+            <Eye size={14} /> Scrutinize
+          </Link>
+          <Button
+            variant="outline-danger"
+            size="sm"
+            className="d-inline-flex align-items-center gap-1"
+            onClick={() => setDeletingApp(row)}
+            title="Permanently Delete / Purge Application"
+          >
+            <Trash2 size={13} />
+          </Button>
+        </div>
       )
     }
   ];
@@ -141,7 +178,22 @@ const VerifierQueue = () => {
                 Review OCR extraction confidence, inspect declared vs extracted mismatches, and approve documents.
               </p>
             </div>
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              className="d-flex align-items-center gap-1 fw-semibold"
+              onClick={fetchQueue}
+              disabled={loading}
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh Queue
+            </Button>
           </div>
+
+          {alertMsg && (
+            <Alert variant={alertType} dismissible onClose={() => setAlertMsg(null)} className="py-2.5 small mb-3">
+              {alertMsg}
+            </Alert>
+          )}
 
           {/* Filter Toolbar */}
           <Card className="gov-card p-3 mb-4 border bg-white shadow-sm">
@@ -210,6 +262,38 @@ const VerifierQueue = () => {
               exportFilename="verifier_queue_data"
             />
           )}
+
+          {/* Delete Confirmation Modal */}
+          <Modal show={Boolean(deletingApp)} onHide={() => setDeletingApp(null)} centered>
+            <Modal.Header closeButton className="bg-light">
+              <Modal.Title className="fs-6 fw-bold text-danger d-flex align-items-center gap-2">
+                <AlertTriangle size={18} /> Confirm Application Deletion
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body className="p-4">
+              <p className="text-dark mb-2">
+                Are you sure you want to permanently delete application <strong>#{deletingApp?.applicationNo}</strong>?
+              </p>
+              <div className="alert alert-danger py-2 small mb-0">
+                <strong>Warning:</strong> This will delete this application, all associated uploaded certificates, OCR scan data, and deficiencies permanently from the database.
+              </div>
+            </Modal.Body>
+            <Modal.Footer className="bg-light">
+              <Button variant="secondary" size="sm" onClick={() => setDeletingApp(null)} disabled={isDeleting}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                className="fw-bold d-inline-flex align-items-center gap-1.5"
+                onClick={handleDeleteApplication}
+                disabled={isDeleting}
+              >
+                {isDeleting ? <Spinner size="sm" animation="border" /> : <Trash2 size={14} />}
+                <span>Delete Permanently</span>
+              </Button>
+            </Modal.Footer>
+          </Modal>
         </Col>
       </Row>
     </Container>
@@ -217,3 +301,4 @@ const VerifierQueue = () => {
 };
 
 export default VerifierQueue;
+

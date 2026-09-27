@@ -29,6 +29,21 @@ export const getVerifierQueue = async (req, res, next) => {
       .populate('applicantId', '-passwordHash')
       .sort({ updatedAt: -1 });
 
+    // Ensure orphaned applications (missing applicantId) are filtered out and cleaned up
+    const orphanedApps = applications.filter(a => !a.applicantId);
+    if (orphanedApps.length > 0) {
+      const orphanIds = orphanedApps.map(a => a._id);
+      setImmediate(async () => {
+        try {
+          await Document.deleteMany({ applicationId: { $in: orphanIds } });
+          await Deficiency.deleteMany({ applicationId: { $in: orphanIds } });
+          await VerificationLog.deleteMany({ applicationId: { $in: orphanIds } });
+          await Application.deleteMany({ _id: { $in: orphanIds } });
+        } catch {}
+      });
+      applications = applications.filter(a => a.applicantId);
+    }
+
     // Filter by flagged items if requested
     if (flagged === 'true') {
       const appIds = applications.map(a => a._id);
