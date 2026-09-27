@@ -39,10 +39,12 @@ const OcrResultCard = ({ document: doc }) => {
     return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  const formatVal = (val) => {
+  // Format by field name, not by size: a year like 2025 is not money, a CGPA is not a percentage
+  const formatVal = (key, val) => {
     if (typeof val === 'number') {
-      if (val > 1000) return `₹${val.toLocaleString('en-IN')}`;
-      return `${val}%`;
+      if (key === 'annual_income') return `₹${val.toLocaleString('en-IN')}`;
+      if (key === 'percentage') return `${val}%`;
+      return String(val);
     }
     return String(val);
   };
@@ -125,7 +127,7 @@ const OcrResultCard = ({ document: doc }) => {
                             {formatKey(k)}
                           </td>
                           <td className="fw-bold text-dark">
-                            {formatVal(v)}
+                            {formatVal(k, v)}
                           </td>
                         </tr>
                       );

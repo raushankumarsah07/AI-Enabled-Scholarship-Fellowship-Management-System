@@ -115,11 +115,15 @@ const applicationSchema = new mongoose.Schema({
 // Helper static method to generate formatted application number
 applicationSchema.statics.generateApplicationNo = async function(schemeCode) {
   const year = new Date().getFullYear();
-  const count = await this.countDocuments({
-    applicationNo: new RegExp(`^${schemeCode}/${year}/`)
-  });
-  const sequence = String(count + 1).padStart(6, '0');
-  return `${schemeCode}/${year}/${sequence}`;
+  const prefix = `${schemeCode}/${year}/`;
+  // Use the highest existing number, not the count: seeded or deleted records leave gaps,
+  // and count + 1 can land on a number that already exists (duplicate key error)
+  const last = await this.findOne({ applicationNo: new RegExp(`^${prefix}`) })
+    .sort({ applicationNo: -1 })
+    .select('applicationNo')
+    .lean();
+  const lastSeq = last ? (parseInt(last.applicationNo.split('/').pop(), 10) || 0) : 0;
+  return `${prefix}${String(lastSeq + 1).padStart(6, '0')}`;
 };
 
 const Application = mongoose.model('Application', applicationSchema);
