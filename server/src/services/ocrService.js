@@ -136,8 +136,13 @@ export const extractFieldsByDocType = (docKey, rawText) => {
       if (certNoMatch) extracted.certificate_no = certNoMatch[1].trim();
 
       // Category
-      if (/scheduled\s*tribe|category\s*[:\s]*st\b|\bST\b/i.test(rawText)) {
+      // Only accept clear ST wording (a bare "ST" also appears inside certificate numbers like TEST-ST-2026)
+      if (/scheduled\s*tribe|\(\s*ST\s*\)|category\s*[:\-]?\s*ST\b/i.test(rawText)) {
         extracted.category = 'Scheduled Tribe (ST)';
+      } else if (/scheduled\s*caste|\(\s*SC\s*\)/i.test(rawText)) {
+        extracted.category = 'Scheduled Caste (SC)';
+      } else if (/other\s*backward|\bOBC\b/i.test(rawText)) {
+        extracted.category = 'Other Backward Class (OBC)';
       }
 
       // Issuing authority
@@ -449,6 +454,21 @@ export const compareDataAndDetectMismatches = (docKey, declaredData, extractedDa
     } catch {
       // Ignore date parse errors
     }
+  }
+
+  // 9. Key field could not be read -> never auto-clear, send to a human verifier
+  const keyFields = { income_certificate: 'annual_income', caste_certificate: 'category' };
+  const keyField = keyFields[docKey];
+  const wrongType = detectedDocType !== 'unknown' && detectedDocType !== docKey;
+  if (keyField && !wrongType && (extractedData[keyField] === undefined || extractedData[keyField] === null || extractedData[keyField] === '')) {
+    const label = keyField === 'annual_income' ? 'income amount' : 'category (ST)';
+    mismatches.push({
+      field: keyField,
+      declared: 'Must be readable',
+      extracted: 'Not found',
+      severity: 'warning',
+      message: `Could not read the ${label} on this document. A verifier will check it by hand.`
+    });
   }
 
   return mismatches;
