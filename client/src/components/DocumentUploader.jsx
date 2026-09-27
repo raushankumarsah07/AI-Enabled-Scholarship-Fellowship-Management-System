@@ -46,8 +46,9 @@ const DocumentUploader = ({
 
     try {
       let res;
-      if (isReupload && uploadedDoc?._id) {
-        res = await axiosClient.post(`/documents/${uploadedDoc._id}/reupload`, formData, {
+      if (isReupload && (uploadedDoc?._id || deficiencyId)) {
+        // The re-upload route closes the deficiency once the new file is clean (it accepts a document id or a deficiency id)
+        res = await axiosClient.post(`/documents/${uploadedDoc?._id || deficiencyId}/reupload`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
       } else {
