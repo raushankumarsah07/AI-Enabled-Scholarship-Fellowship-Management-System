@@ -35,7 +35,7 @@ const Home = () => {
       subtitle: 'Direct financial fellowship for M.Phil & Ph.D. scholars in Indian Universities, IITs, NITs, and National Research Laboratories with JRF/SRF fellowship as per UGC norms + contingency.',
       stats: [
         { label: 'Annual Fellowships', value: '750 Seats' },
-        { label: 'JRF Stipend Support', value: '₹3.84L / yr' },
+        { label: 'JRF / SRF Stipend', value: 'As per UGC norms' },
         { label: 'Women Reservation', value: '30% Quota' }
       ],
       preCheckCode: 'ARG45',
@@ -116,17 +116,17 @@ const Home = () => {
       badgeColor: '#ec4899',
       title: 'AI-Enabled Scholarship & Fellowship Platform',
       tagline: 'Offline OCR, Fraud Detection & Explainable Decision Support',
-      subtitle: 'Local offline OCR extracts documents in seconds. Multi-class Machine Learning models predict eligibility with 99.17% accuracy and generate merit rankings with full human-in-the-loop audit trails.',
+      subtitle: 'OCR reads each certificate in about 2 seconds and flags mismatches. Rules decide eligibility, and a human officer makes every final decision.',
       stats: [
-        { label: 'Document OCR', value: '100% Offline' },
-        { label: 'ML Accuracy', value: '99.17% (Trained)' },
-        { label: 'Decision Audit', value: '100% Immutable' }
+        { label: 'Document reading', value: '~2 sec / document' },
+        { label: 'Wrong uploads approved', value: '0 of 44 in our test' },
+        { label: 'Final decision', value: 'Always a human' }
       ],
       preCheckCode: 'ARG45',
       image: '/images/hero/slide_ai_model.jpg',
       floatingBadges: [
-        { position: 'top-left', text: '🧠 99.17% ML Accuracy', color: '#a855f7' },
-        { position: 'bottom-right', text: '🛡️ 100% Secure & Audited', color: '#10b981' }
+        { position: 'top-left', text: '🧠 AI flags, humans decide', color: '#a855f7' },
+        { position: 'bottom-right', text: '📝 Every decision has a reason', color: '#10b981' }
       ],
       icon: Cpu
     }
