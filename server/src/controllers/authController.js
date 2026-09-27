@@ -1,5 +1,11 @@
+import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import Application from '../models/Application.js';
+import Document from '../models/Document.js';
+import Deficiency from '../models/Deficiency.js';
+import VerificationLog from '../models/VerificationLog.js';
+import Notification from '../models/Notification.js';
 import AuditLog from '../models/AuditLog.js';
 import { sendNotification } from '../services/notificationService.js';
 import { sendOtpEmail } from '../services/emailService.js';
@@ -240,6 +246,65 @@ export const updateProfile = async (req, res, next) => {
       success: true,
       message: 'Profile updated successfully.',
       user
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteAccount = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    // 1. Find all applications by this user
+    const applications = await Application.find({ applicantId: userId });
+    const appIds = applications.map(a => a._id);
+
+    // 2. Find and delete all documents & disk files for this user's applications
+    const documents = await Document.find({ applicationId: { $in: appIds } });
+    for (const doc of documents) {
+      if (doc.storedPath && fs.existsSync(doc.storedPath)) {
+        try { fs.unlinkSync(doc.storedPath); } catch {}
+      }
+    }
+    await Document.deleteMany({ applicationId: { $in: appIds } });
+
+    // 3. Delete all Deficiencies for these applications
+    await Deficiency.deleteMany({ applicationId: { $in: appIds } });
+
+    // 4. Delete all VerificationLogs for these applications
+    await VerificationLog.deleteMany({ applicationId: { $in: appIds } });
+
+    // 5. Delete all Applications
+    await Application.deleteMany({ applicantId: userId });
+
+    // 6. Delete all Notifications for this user
+    await Notification.deleteMany({ userId });
+
+    // 7. Record Audit Log before deleting user record
+    try {
+      await AuditLog.create({
+        actorId: userId,
+        actorName: user.name,
+        actorRole: user.role,
+        action: 'USER_ACCOUNT_DELETED',
+        entityType: 'User',
+        entityId: userId.toString(),
+        reason: 'User self-requested permanent account deletion.',
+        ip: req.ip || '127.0.0.1'
+      });
+    } catch {}
+
+    // 8. Delete User account from database
+    await User.findByIdAndDelete(userId);
+
+    res.json({
+      success: true,
+      message: 'Your account and all associated documents and applications have been permanently deleted.'
     });
   } catch (error) {
     next(error);

@@ -7,7 +7,7 @@ import Sidebar from '../../components/Sidebar';
 import DocumentUploader from '../../components/DocumentUploader';
 import OcrResultCard from '../../components/OcrResultCard';
 import EligibilityResultCard from '../../components/EligibilityResultCard';
-import { FilePlus, Check, ArrowRight, ArrowLeft, ShieldCheck, Sparkles, RefreshCw, FileText, CheckCircle2 } from 'lucide-react';
+import { FilePlus, Check, ArrowRight, ArrowLeft, ShieldCheck, Sparkles, RefreshCw, FileText, CheckCircle2, Trash2 } from 'lucide-react';
 
 const NewApplication = () => {
   const [searchParams] = useSearchParams();
@@ -25,6 +25,7 @@ const NewApplication = () => {
 
   const [loading, setLoading] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
+  const [discardingDraft, setDiscardingDraft] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
@@ -205,6 +206,32 @@ const NewApplication = () => {
         setUploadedDocs(res.data.documents || []);
       }
     } catch {}
+  };
+
+  // Discard / Delete Draft Application permanently
+  const handleDiscardDraft = async () => {
+    if (!application?._id) return;
+    if (!window.confirm(`Are you sure you want to discard application draft #${application.applicationNo}? All uploaded certificates (Aadhaar, income, marksheet, etc.) will be permanently deleted.`)) {
+      return;
+    }
+
+    setDiscardingDraft(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      const res = await axiosClient.delete(`/applications/${application._id}`);
+      if (res.data.success) {
+        setApplication(null);
+        setUploadedDocs([]);
+        setStep(1);
+        setSuccessMsg('Draft application and all associated documents were discarded successfully.');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to discard application draft.');
+    } finally {
+      setDiscardingDraft(false);
+    }
   };
 
   // Step 2 -> Proceed to Review
@@ -447,25 +474,44 @@ const NewApplication = () => {
                   </>
                 )}
 
-                <div className="d-flex justify-content-between align-items-center mt-4 border-top pt-3">
+                <div className="d-flex justify-content-between align-items-center mt-4 border-top pt-3 flex-wrap gap-2">
                   <div className="text-muted small">
                     {application ? `Saved Draft Ref: ${application.applicationNo}` : 'Click below to create draft and proceed to upload documents.'}
                   </div>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    className="fw-bold px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
-                    disabled={savingDraft || loading}
-                    style={{ backgroundColor: '#0B2545', borderColor: '#0B2545' }}
-                  >
-                    {savingDraft ? (
-                      <Spinner size="sm" animation="border" />
-                    ) : (
-                      <>
-                        Save &amp; Proceed to Documents <ArrowRight size={16} />
-                      </>
+                  <div className="d-flex align-items-center gap-2">
+                    {application && (
+                      <Button
+                        type="button"
+                        variant="outline-danger"
+                        size="sm"
+                        className="d-flex align-items-center gap-1"
+                        onClick={handleDiscardDraft}
+                        disabled={discardingDraft}
+                      >
+                        {discardingDraft ? (
+                          <Spinner size="sm" animation="border" />
+                        ) : (
+                          <Trash2 size={14} />
+                        )}
+                        <span>Discard Draft</span>
+                      </Button>
                     )}
-                  </Button>
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      className="fw-bold px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
+                      disabled={savingDraft || loading}
+                      style={{ backgroundColor: '#0B2545', borderColor: '#0B2545' }}
+                    >
+                      {savingDraft ? (
+                        <Spinner size="sm" animation="border" />
+                      ) : (
+                        <>
+                          Save &amp; Proceed to Documents <ArrowRight size={16} />
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </Form>
             </Card>
@@ -483,8 +529,21 @@ const NewApplication = () => {
                     </p>
                   </div>
                   {application && (
-                    <div className="small text-muted">
-                      Draft Ref: <strong>{application.applicationNo}</strong>
+                    <div className="d-flex align-items-center gap-2">
+                      <div className="small text-muted">
+                        Draft Ref: <strong>{application.applicationNo}</strong>
+                      </div>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        className="py-1 px-2 d-inline-flex align-items-center gap-1"
+                        onClick={handleDiscardDraft}
+                        disabled={discardingDraft}
+                        title="Discard Draft and all uploaded documents"
+                      >
+                        {discardingDraft ? <Spinner size="sm" animation="border" /> : <Trash2 size={13} />}
+                        <span style={{ fontSize: '0.8rem' }}>Discard Draft</span>
+                      </Button>
                     </div>
                   )}
                 </div>

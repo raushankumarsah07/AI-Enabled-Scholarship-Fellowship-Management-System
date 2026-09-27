@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Form, Button, ProgressBar, Alert, Spinner } from 'react-bootstrap';
-import { UploadCloud, FileText, CheckCircle, AlertCircle, RefreshCw, Cpu } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle, AlertCircle, RefreshCw, Cpu, Trash2 } from 'lucide-react';
 import axiosClient from '../api/axiosClient';
 
 const DocumentUploader = ({
@@ -16,10 +16,16 @@ const DocumentUploader = ({
 }) => {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState(null);
   const [uploadedDoc, setUploadedDoc] = useState(currentDoc);
   const fileInputRef = useRef(null);
+
+  // Sync uploadedDoc with currentDoc if changed from parent
+  React.useEffect(() => {
+    setUploadedDoc(currentDoc);
+  }, [currentDoc]);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -72,6 +78,28 @@ const DocumentUploader = ({
     }
   };
 
+  const handleDelete = async () => {
+    if (!uploadedDoc?._id) return;
+    if (!window.confirm(`Are you sure you want to delete this ${label}?`)) return;
+
+    setDeleting(true);
+    setError(null);
+
+    try {
+      const res = await axiosClient.delete(`/documents/${uploadedDoc._id}`);
+      if (res.data.success) {
+        setUploadedDoc(null);
+        setFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        if (onUploadSuccess) onUploadSuccess(null, 'deleted');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete document.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const pollOcrStatus = (docId) => {
     let attempts = 0;
     const maxAttempts = 20;
@@ -100,7 +128,7 @@ const DocumentUploader = ({
 
   return (
     <div className="gov-card p-3 mb-3 border">
-      <div className="d-flex justify-content-between align-items-center mb-2">
+      <div className="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
         <div className="fw-bold text-dark fs-6 d-flex align-items-center gap-2">
           <FileText size={18} className="text-primary" />
           <span>{label}</span>
@@ -110,11 +138,31 @@ const DocumentUploader = ({
             </span>
           )}
         </div>
-        {uploadedDoc && !scanning && (
-          <span className="badge bg-success bg-opacity-10 text-success d-inline-flex align-items-center gap-1">
-            <CheckCircle size={13} /> {uploadedDoc.ocrStatus === 'done' ? 'OCR Verified' : 'Uploaded'}
-          </span>
-        )}
+        <div className="d-flex align-items-center gap-2">
+          {uploadedDoc && !scanning && (
+            <span className="badge bg-success bg-opacity-10 text-success d-inline-flex align-items-center gap-1">
+              <CheckCircle size={13} /> {uploadedDoc.ocrStatus === 'done' ? 'OCR Verified' : 'Uploaded'}
+            </span>
+          )}
+          {uploadedDoc && !scanning && !isReupload && (
+            <Button
+              variant="outline-danger"
+              size="sm"
+              onClick={handleDelete}
+              disabled={deleting}
+              className="py-0.5 px-2 d-inline-flex align-items-center gap-1"
+              title="Delete Document"
+              style={{ fontSize: '0.78rem' }}
+            >
+              {deleting ? (
+                <Spinner size="sm" animation="border" style={{ width: '12px', height: '12px' }} />
+              ) : (
+                <Trash2 size={13} />
+              )}
+              <span>Delete</span>
+            </Button>
+          )}
+        </div>
       </div>
 
       {error && <Alert variant="danger" className="py-2 small mb-2">{error}</Alert>}
@@ -147,7 +195,7 @@ const DocumentUploader = ({
             variant="gov-primary"
             size="sm"
             onClick={handleUpload}
-            disabled={!file || uploading}
+            disabled={!file || uploading || deleting}
             className="d-flex align-items-center gap-1"
           >
             {uploading ? (
@@ -156,7 +204,7 @@ const DocumentUploader = ({
               </>
             ) : (
               <>
-                <UploadCloud size={15} /> {isReupload ? 'Re-Upload & Re-Scan' : 'Upload & Scan'}
+                <UploadCloud size={15} /> {isReupload ? 'Re-Upload & Re-Scan' : (uploadedDoc ? 'Replace & Scan' : 'Upload & Scan')}
               </>
             )}
           </Button>
@@ -173,3 +221,4 @@ const DocumentUploader = ({
 };
 
 export default DocumentUploader;
+

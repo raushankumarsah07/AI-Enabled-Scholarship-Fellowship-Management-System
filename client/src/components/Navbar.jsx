@@ -4,7 +4,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import NotificationBell from './NotificationBell';
-import { User, LogOut, ShieldCheck, CheckCircle2, FileText, Layers, Award, Cpu } from 'lucide-react';
+import { User, LogOut, ShieldCheck, CheckCircle2, FileText, Layers, Award, Cpu, Trash2 } from 'lucide-react';
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -142,7 +142,12 @@ const Navbar = () => {
                   )}
 
                   <NavDropdown.Divider />
-                  <NavDropdown.Item onClick={handleLogout} className="text-danger fw-semibold">
+                  {user?.role === 'applicant' && (
+                    <NavDropdown.Item as={Link} to="/applicant/profile#danger-zone" className="text-danger small">
+                      <Trash2 size={14} className="me-2" /> Delete Account
+                    </NavDropdown.Item>
+                  )}
+                  <NavDropdown.Item onClick={handleLogout} className="text-secondary fw-semibold">
                     <LogOut size={15} className="me-2" /> {t('nav.logout', 'Sign Out')}
                   </NavDropdown.Item>
                 </NavDropdown>

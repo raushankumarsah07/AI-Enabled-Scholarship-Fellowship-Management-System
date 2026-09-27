@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Alert, Spinner, Modal } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import axiosClient from '../../api/axiosClient';
 import Sidebar from '../../components/Sidebar';
-import { User, Save, CheckCircle } from 'lucide-react';
+import { User, Save, CheckCircle, Trash2, AlertTriangle, ShieldAlert } from 'lucide-react';
 
 const Profile = () => {
-  const { user, updateUserProfile } = useAuth();
+  const { user, updateUserProfile, logout } = useAuth();
   const { setLang } = useLanguage();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -31,6 +33,12 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
   const [error, setError] = useState(null);
+
+  // Danger Zone Deletion states
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -83,6 +91,29 @@ const Profile = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmationText.trim().toUpperCase() !== 'DELETE') {
+      setDeleteError('Please type DELETE in the box below to confirm account deletion.');
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    setDeleteError(null);
+
+    try {
+      const res = await axiosClient.delete('/auth/account');
+      if (res.data.success) {
+        logout();
+        navigate('/login', {
+          state: { message: 'Your account and all associated documents, applications, and logs have been permanently deleted.' }
+        });
+      }
+    } catch (err) {
+      setDeleteError(err.response?.data?.message || 'Failed to delete account. Please try again.');
+      setIsDeletingAccount(false);
+    }
+  };
+
   return (
     <Container fluid className="py-4 px-lg-4">
       <Row className="gy-4">
@@ -91,10 +122,10 @@ const Profile = () => {
         </Col>
 
         <Col lg={9} md={8}>
-          <Card className="gov-card p-4 border">
+          <Card className="gov-card p-4 border mb-4">
             <div className="d-flex align-items-center gap-2 mb-3 border-bottom pb-2">
               <User size={24} className="text-primary" />
-              <h4 className="fw-bold text-dark mb-0">My Scholar Profile & Settings</h4>
+              <h4 className="fw-bold text-dark mb-0">My Scholar Profile &amp; Settings</h4>
             </div>
 
             {success && <Alert variant="success" className="py-2 small">{success}</Alert>}
@@ -138,7 +169,7 @@ const Profile = () => {
                 </Col>
               </Row>
 
-              <h6 className="fw-bold text-primary mb-3">2. Academic & Direct Benefit Transfer (DBT) Banking</h6>
+              <h6 className="fw-bold text-primary mb-3">2. Academic &amp; Direct Benefit Transfer (DBT) Banking</h6>
               <Row className="gy-3 mb-4">
                 <Col md={4}>
                   <Form.Group>
@@ -204,6 +235,103 @@ const Profile = () => {
               </div>
             </Form>
           </Card>
+
+          {/* DANGER ZONE: ACCOUNT DELETION */}
+          <Card className="gov-card p-4 border border-danger border-opacity-50 bg-danger bg-opacity-10" id="danger-zone">
+            <div className="d-flex align-items-center gap-2 mb-2 text-danger">
+              <ShieldAlert size={22} />
+              <h5 className="fw-bold mb-0">Danger Zone: Permanent Account Deletion</h5>
+            </div>
+            <p className="text-dark small mb-3">
+              Permanently remove your scholar account, profile details, and all associated scholarship applications, uploaded certificates (Aadhaar card, income passbooks, marksheets, etc.), OCR scan data, and deficiency logs from the database and disk storage.
+            </p>
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div className="text-danger small fw-semibold">
+                ⚠️ This action is irreversible. All records will be wiped immediately.
+              </div>
+              <Button
+                variant="danger"
+                size="sm"
+                className="fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm"
+                onClick={() => {
+                  setShowDeleteModal(true);
+                  setDeleteConfirmationText('');
+                  setDeleteError(null);
+                }}
+              >
+                <Trash2 size={15} /> Delete Account Permanently
+              </Button>
+            </div>
+          </Card>
+
+          {/* Account Deletion Confirmation Modal */}
+          <Modal show={showDeleteModal} onHide={() => !isDeletingAccount && setShowDeleteModal(false)} centered>
+            <Modal.Header closeButton={!isDeletingAccount} className="bg-danger text-white">
+              <Modal.Title className="fs-6 fw-bold d-flex align-items-center gap-2">
+                <AlertTriangle size={20} /> Permanently Delete Your Account?
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body className="p-4">
+              <div className="alert alert-danger py-2.5 small mb-3">
+                <strong>Attention {user?.name}:</strong> You are about to permanently delete your account (<code>{user?.email}</code>).
+              </div>
+
+              <p className="small text-dark mb-3">
+                This will immediately and permanently delete:
+              </p>
+              <ul className="small text-secondary mb-3">
+                <li>Your user account and profile credentials</li>
+                <li>All scholarship and fellowship applications</li>
+                <li>All uploaded certificates (Aadhaar, income, marksheet, etc.) and physical files</li>
+                <li>All offline OCR extraction data, deficiency logs, and notifications</li>
+              </ul>
+
+              {deleteError && (
+                <Alert variant="danger" className="py-2 small mb-3">{deleteError}</Alert>
+              )}
+
+              <Form.Group className="mb-2">
+                <Form.Label className="small fw-bold text-dark">
+                  Please type <span className="text-danger fw-bold">DELETE</span> to confirm:
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Type DELETE"
+                  value={deleteConfirmationText}
+                  onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                  disabled={isDeletingAccount}
+                  autoFocus
+                />
+              </Form.Group>
+            </Modal.Body>
+            <Modal.Footer className="bg-light">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeletingAccount}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                className="fw-bold d-inline-flex align-items-center gap-1.5"
+                onClick={handleDeleteAccount}
+                disabled={isDeletingAccount || deleteConfirmationText.trim().toUpperCase() !== 'DELETE'}
+              >
+                {isDeletingAccount ? (
+                  <>
+                    <Spinner size="sm" animation="border" /> Deleting Account…
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={15} /> Yes, Delete My Entire Account
+                  </>
+                )}
+              </Button>
+            </Modal.Footer>
+          </Modal>
         </Col>
       </Row>
     </Container>
@@ -211,3 +339,4 @@ const Profile = () => {
 };
 
 export default Profile;
+

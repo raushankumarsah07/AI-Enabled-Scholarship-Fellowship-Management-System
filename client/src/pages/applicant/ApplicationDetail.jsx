@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Badge, Button, Spinner, Alert, Table } from 'react-bootstrap';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { Container, Row, Col, Card, Badge, Button, Spinner, Alert, Table, Modal } from 'react-bootstrap';
+import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import axiosClient from '../../api/axiosClient';
 import Sidebar from '../../components/Sidebar';
@@ -8,16 +8,19 @@ import Timeline from '../../components/Timeline';
 import StatusBadge from '../../components/StatusBadge';
 import OcrResultCard from '../../components/OcrResultCard';
 import EligibilityResultCard from '../../components/EligibilityResultCard';
-import { FileText, ArrowLeft, Award, ShieldCheck, AlertTriangle, CheckCircle2, History } from 'lucide-react';
+import { FileText, ArrowLeft, Award, ShieldCheck, AlertTriangle, CheckCircle2, History, Trash2 } from 'lucide-react';
 
 const ApplicationDetail = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const isJustSubmitted = searchParams.get('submitted') === 'true';
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchApp = async () => {
@@ -41,6 +44,20 @@ const ApplicationDetail = () => {
     };
     fetchApp();
   }, [id, isJustSubmitted]);
+
+  const handleDeleteApplication = async () => {
+    setIsDeleting(true);
+    try {
+      const res = await axiosClient.delete(`/applications/${id}`);
+      if (res.data.success) {
+        navigate('/applicant/applications');
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete application.');
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -71,10 +88,18 @@ const ApplicationDetail = () => {
 
         <Col lg={9} md={8}>
           {/* Top Navigation */}
-          <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <Link to="/applicant/applications" className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
               <ArrowLeft size={14} /> Back to My Applications
             </Link>
+            <Button
+              variant="outline-danger"
+              size="sm"
+              className="d-inline-flex align-items-center gap-1"
+              onClick={() => setShowDeleteModal(true)}
+            >
+              <Trash2 size={14} /> Delete Application
+            </Button>
           </div>
 
           {/* Submission Success Toast Banner */}
@@ -215,6 +240,38 @@ const ApplicationDetail = () => {
               </Table>
             </div>
           </Card>
+
+          {/* Delete Confirmation Modal */}
+          <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
+            <Modal.Header closeButton className="bg-light">
+              <Modal.Title className="fs-6 fw-bold text-danger d-flex align-items-center gap-2">
+                <AlertTriangle size={18} /> Confirm Application Deletion
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body className="p-4">
+              <p className="text-dark mb-2">
+                Are you sure you want to permanently delete application <strong>#{application.applicationNo}</strong> (<em>{scheme?.name}</em>)?
+              </p>
+              <div className="alert alert-danger py-2 small mb-0">
+                <strong>Warning:</strong> This will delete all uploaded certificates (Aadhaar, income, marksheet, etc.), OCR analysis, and logs permanently from the system.
+              </div>
+            </Modal.Body>
+            <Modal.Footer className="bg-light">
+              <Button variant="secondary" size="sm" onClick={() => setShowDeleteModal(false)} disabled={isDeleting}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                className="fw-bold d-inline-flex align-items-center gap-1.5"
+                onClick={handleDeleteApplication}
+                disabled={isDeleting}
+              >
+                {isDeleting ? <Spinner size="sm" animation="border" /> : <Trash2 size={14} />}
+                <span>Delete Permanently</span>
+              </Button>
+            </Modal.Footer>
+          </Modal>
         </Col>
       </Row>
     </Container>

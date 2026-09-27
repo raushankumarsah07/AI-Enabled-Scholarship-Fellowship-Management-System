@@ -105,10 +105,15 @@ export const getDocumentStatus = async (req, res, next) => {
 export const deleteDocument = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const doc = await Document.findById(id);
+    const doc = await Document.findById(id).populate('applicationId');
 
     if (!doc) {
       return res.status(404).json({ success: false, message: 'Document not found.' });
+    }
+
+    // Role check: applicants can only delete their own documents
+    if (req.user && req.user.role === 'applicant' && doc.applicationId?.applicantId?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Access denied.' });
     }
 
     if (fs.existsSync(doc.storedPath)) {
@@ -116,6 +121,11 @@ export const deleteDocument = async (req, res, next) => {
     }
 
     await Document.findByIdAndDelete(id);
+
+    // Also clean up any open deficiencies for this document
+    if (doc.applicationId?._id) {
+      await Deficiency.deleteMany({ applicationId: doc.applicationId._id, docKey: doc.docKey });
+    }
 
     res.json({
       success: true,

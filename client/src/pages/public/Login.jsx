@@ -66,6 +66,13 @@ const Login = () => {
               </p>
             </div>
 
+            {location.state?.message && (
+              <Alert variant="info" className="py-2.5 small d-flex align-items-center gap-2">
+                <CheckCircle2 size={18} className="text-info flex-shrink-0" />
+                <div>{location.state.message}</div>
+              </Alert>
+            )}
+
             {error && <Alert variant="danger" className="py-2 small">{error}</Alert>}
 
             <Form onSubmit={handleSubmit}>

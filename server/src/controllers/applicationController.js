@@ -1,7 +1,9 @@
+import fs from 'fs';
 import Application from '../models/Application.js';
 import Scheme from '../models/Scheme.js';
 import Document from '../models/Document.js';
 import Deficiency from '../models/Deficiency.js';
+import VerificationLog from '../models/VerificationLog.js';
 import AuditLog from '../models/AuditLog.js';
 import { evaluate } from '../services/rulesEngine.js';
 import { sendNotification } from '../services/notificationService.js';
@@ -291,6 +293,62 @@ export const getApplicationTimeline = async (req, res, next) => {
       applicationNo: application.applicationNo,
       currentStatus: application.status,
       timeline: application.stageHistory
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteApplication = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const application = await Application.findById(id);
+
+    if (!application) {
+      return res.status(404).json({ success: false, message: 'Application not found.' });
+    }
+
+    // Only the applicant who owns the application or an admin can delete it
+    if (req.user.role === 'applicant' && application.applicantId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Access denied.' });
+    }
+
+    // 1. Delete all documents & disk files for this application
+    const documents = await Document.find({ applicationId: id });
+    for (const doc of documents) {
+      if (doc.storedPath && fs.existsSync(doc.storedPath)) {
+        try { fs.unlinkSync(doc.storedPath); } catch {}
+      }
+    }
+    await Document.deleteMany({ applicationId: id });
+
+    // 2. Delete all Deficiencies for this application
+    await Deficiency.deleteMany({ applicationId: id });
+
+    // 3. Delete all VerificationLogs for this application
+    await VerificationLog.deleteMany({ applicationId: id });
+
+    // 4. Log Audit
+    try {
+      await AuditLog.create({
+        actorId: req.user._id,
+        actorName: req.user.name,
+        actorRole: req.user.role,
+        action: 'APPLICATION_DELETED',
+        entityType: 'Application',
+        entityId: id,
+        before: { applicationNo: application.applicationNo, status: application.status },
+        reason: 'Application deleted by applicant/admin.',
+        ip: req.ip || '127.0.0.1'
+      });
+    } catch {}
+
+    // 5. Delete Application
+    await Application.findByIdAndDelete(id);
+
+    res.json({
+      success: true,
+      message: `Application #${application.applicationNo} and all associated documents were successfully deleted.`
     });
   } catch (error) {
     next(error);
