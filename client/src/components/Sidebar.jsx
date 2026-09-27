@@ -19,7 +19,8 @@ import {
   BarChart3,
   History,
   AlertOctagon,
-  Cpu
+  Cpu,
+  IndianRupee
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -100,6 +101,10 @@ const Sidebar = () => {
               <Layers size={18} />
               <span>Selection Workflow</span>
             </NavLink>
+            <NavLink to="/officer/payments" className={({ isActive }) => `gov-sidebar-item ${isActive ? 'active' : ''}`}>
+              <IndianRupee size={18} />
+              <span>Fellowship Payments</span>
+            </NavLink>
           </>
         )}
 
@@ -120,7 +125,11 @@ const Sidebar = () => {
             </NavLink>
             <NavLink to="/admin/merit" className={({ isActive }) => `gov-sidebar-item ${isActive ? 'active' : ''}`}>
               <Award size={18} />
-              <span>Publish Merit List</span>
+              <span>Merit List (View Only)</span>
+            </NavLink>
+            <NavLink to="/officer/payments" className={({ isActive }) => `gov-sidebar-item ${isActive ? 'active' : ''}`}>
+              <IndianRupee size={18} />
+              <span>Fellowship Payments (View Only)</span>
             </NavLink>
             <NavLink to="/admin/anomalies" className={({ isActive }) => `gov-sidebar-item ${isActive ? 'active' : ''}`}>
               <AlertOctagon size={18} className="text-danger" />

@@ -115,7 +115,9 @@ const MyFellowship = () => {
                         <td className="fw-bold text-success">₹{disb.amount?.toLocaleString('en-IN')}</td>
                         <td>{new Date(disb.dueDate).toLocaleDateString('en-IN')}</td>
                         <td>
-                          {disb.guideApproved ? (
+                          {disb.installmentNo === 1 ? (
+                            <span className="text-muted small">Not required for the first installment</span>
+                          ) : disb.guideApproved ? (
                             <Badge bg="success"><Check size={12} className="me-1" /> Supervisor Certified</Badge>
                           ) : (
                             <Badge bg="warning" text="dark"><Clock size={12} className="me-1" /> Pending Report</Badge>
@@ -130,7 +132,7 @@ const MyFellowship = () => {
                           {disb.transactionId ? <code>{disb.transactionId}</code> : <span className="text-muted">—</span>}
                         </td>
                         <td>
-                          {disb.status === 'pending' && (
+                          {disb.status === 'pending' && disb.installmentNo > 1 && (
                             <Button
                               variant="outline-primary"
                               size="sm"
