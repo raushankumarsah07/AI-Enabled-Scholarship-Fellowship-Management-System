@@ -5,6 +5,7 @@ import Document from '../models/Document.js';
 import Deficiency from '../models/Deficiency.js';
 import VerificationLog from '../models/VerificationLog.js';
 import AuditLog from '../models/AuditLog.js';
+import Disbursement from '../models/Disbursement.js';
 import { evaluate } from '../services/rulesEngine.js';
 import { sendNotification } from '../services/notificationService.js';
 
@@ -325,8 +326,9 @@ export const deleteApplication = async (req, res, next) => {
     // 2. Delete all Deficiencies for this application
     await Deficiency.deleteMany({ applicationId: id });
 
-    // 3. Delete all VerificationLogs for this application
+    // 3. Delete all VerificationLogs and Disbursements for this application
     await VerificationLog.deleteMany({ applicationId: id });
+    await Disbursement.deleteMany({ applicationId: id });
 
     // 4. Log Audit
     try {

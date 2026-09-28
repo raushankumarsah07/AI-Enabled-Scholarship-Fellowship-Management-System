@@ -36,7 +36,7 @@ const getRecommender = async (applicationId) => {
 // Officers and admins: every installment, with who recommended the student
 export const getAllDisbursements = async (req, res, next) => {
   try {
-    const disbursements = await Disbursement.find({})
+    let disbursements = await Disbursement.find({})
       .populate({
         path: 'applicationId',
         select: 'applicationNo status applicantId schemeId',
@@ -48,6 +48,18 @@ export const getAllDisbursements = async (req, res, next) => {
       .sort({ status: 1, dueDate: 1 })
       .lean();
 
+    // Filter out and automatically clean up orphaned disbursements (missing application or applicant)
+    const orphaned = disbursements.filter(d => !d.applicationId || !d.applicationId.applicantId);
+    if (orphaned.length > 0) {
+      const orphanIds = orphaned.map(d => d._id);
+      setImmediate(async () => {
+        try {
+          await Disbursement.deleteMany({ _id: { $in: orphanIds } });
+        } catch {}
+      });
+      disbursements = disbursements.filter(d => d.applicationId && d.applicationId.applicantId);
+    }
+
     const cache = {};
     for (const d of disbursements) {
       const appId = d.applicationId?._id;
@@ -57,6 +69,35 @@ export const getAllDisbursements = async (req, res, next) => {
     }
 
     res.json({ success: true, count: disbursements.length, disbursements });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteDisbursement = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const item = await Disbursement.findById(id);
+    if (!item) {
+      return res.status(404).json({ success: false, message: 'Disbursement not found.' });
+    }
+
+    await Disbursement.findByIdAndDelete(id);
+
+    try {
+      await AuditLog.create({
+        actorId: req.user._id,
+        actorName: req.user.name,
+        actorRole: req.user.role,
+        action: 'DELETE_DISBURSEMENT',
+        entityType: 'Disbursement',
+        entityId: id,
+        reason: 'Disbursement record deleted by admin/officer.',
+        ip: req.ip || '127.0.0.1'
+      });
+    } catch {}
+
+    res.json({ success: true, message: 'Disbursement payment milestone deleted successfully.' });
   } catch (error) {
     next(error);
   }

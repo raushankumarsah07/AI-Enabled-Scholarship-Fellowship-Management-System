@@ -7,6 +7,7 @@ import Deficiency from '../models/Deficiency.js';
 import VerificationLog from '../models/VerificationLog.js';
 import Notification from '../models/Notification.js';
 import AuditLog from '../models/AuditLog.js';
+import Disbursement from '../models/Disbursement.js';
 import { sendNotification } from '../services/notificationService.js';
 import { sendOtpEmail } from '../services/emailService.js';
 
@@ -276,8 +277,9 @@ export const deleteAccount = async (req, res, next) => {
     // 3. Delete all Deficiencies for these applications
     await Deficiency.deleteMany({ applicationId: { $in: appIds } });
 
-    // 4. Delete all VerificationLogs for these applications
+    // 4. Delete all VerificationLogs and Disbursements for these applications
     await VerificationLog.deleteMany({ applicationId: { $in: appIds } });
+    await Disbursement.deleteMany({ applicationId: { $in: appIds } });
 
     // 5. Delete all Applications
     await Application.deleteMany({ applicantId: userId });
